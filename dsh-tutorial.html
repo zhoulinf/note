@@ -1,0 +1,2586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSH 深度教学 — 从零到掌控 DeepSeek Harness</title>
+<meta name="description" content="一份循序渐进、从原理到实践的 DSH(DeepSeek Harness) 完整教学:CLI、Profile、Cordis 内核、插件体系、自定义插件、高级定制。">
+<style>
+  :root {
+    --bg: #0f1419;
+    --bg-soft: #161c24;
+    --bg-card: #1a212b;
+    --bg-code: #0b0f14;
+    --border: #26303d;
+    --border-soft: #1e2732;
+    --fg: #d7dee8;
+    --fg-dim: #8b98a9;
+    --fg-faint: #5f6b7a;
+    --accent: #4d9fff;
+    --accent-2: #7c5cff;
+    --accent-soft: rgba(77, 159, 255, .12);
+    --green: #4ade80;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --purple: #c084fc;
+    --cyan: #22d3ee;
+    --radius: 10px;
+    --sidebar-w: 300px;
+    --topbar-h: 52px;
+    --font: "Segoe UI", "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    --mono: "Cascadia Code", "JetBrains Mono", Consolas, "Courier New", monospace;
+  }
+  [data-theme="light"] {
+    --bg: #f5f7fa;
+    --bg-soft: #ffffff;
+    --bg-card: #ffffff;
+    --bg-code: #f0f3f7;
+    --border: #d5dde6;
+    --border-soft: #e4e9ef;
+    --fg: #1f2a37;
+    --fg-dim: #4b5a6c;
+    --fg-faint: #8290a1;
+    --accent: #1a6dd8;
+    --accent-soft: rgba(26, 109, 216, .1);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.75;
+    font-size: 15px;
+    transition: background .25s, color .25s;
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #2c3848; border-radius: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  /* ── topbar ─────────────────────────────── */
+  .topbar {
+    position: fixed; inset: 0 0 auto 0; height: var(--topbar-h); z-index: 50;
+    display: flex; align-items: center; gap: 12px; padding: 0 16px;
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; white-space: nowrap; }
+  .brand .logo {
+    width: 26px; height: 26px; border-radius: 7px; flex: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center; color: #fff; font-size: 13px; font-weight: 800;
+  }
+  .brand small { color: var(--fg-faint); font-weight: 400; font-size: 12px; }
+  .topbar .spacer { flex: 1; }
+  .progress-wrap { display: flex; align-items: center; gap: 8px; color: var(--fg-dim); font-size: 12px; }
+  .progress-bar { width: 130px; height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; }
+  .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .3s; }
+  .iconbtn {
+    border: 1px solid var(--border); background: var(--bg-card); color: var(--fg);
+    width: 34px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 15px;
+    display: grid; place-items: center; transition: all .15s;
+  }
+  .iconbtn:hover { border-color: var(--accent); color: var(--accent); }
+  #menuBtn { display: none; }
+
+  /* ── sidebar ─────────────────────────────── */
+  .sidebar {
+    position: fixed; top: var(--topbar-h); bottom: 0; left: 0; width: var(--sidebar-w); z-index: 40;
+    background: var(--bg-soft); border-right: 1px solid var(--border-soft);
+    display: flex; flex-direction: column;
+  }
+  .sidebar-search { padding: 12px; border-bottom: 1px solid var(--border-soft); }
+  .sidebar-search input {
+    width: 100%; padding: 8px 12px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--bg-code); color: var(--fg);
+    font-size: 13px; outline: none;
+  }
+  .sidebar-search input:focus { border-color: var(--accent); }
+  .toc { flex: 1; overflow-y: auto; padding: 10px 8px 40px; }
+  .toc-group { margin: 6px 0 2px; padding: 4px 10px; font-size: 11px; letter-spacing: .12em;
+    color: var(--fg-faint); text-transform: uppercase; font-weight: 700; }
+  .toc-item { display: flex; align-items: center; gap: 8px; border-radius: 7px; padding: 3px 8px; cursor: pointer; }
+  .toc-item:hover { background: var(--accent-soft); }
+  .toc-item input { accent-color: var(--accent); cursor: pointer; flex: none; }
+  .toc-item a { flex: 1; text-decoration: none; color: var(--fg-dim); font-size: 13.5px; padding: 3px 0; }
+  .toc-item a:hover { color: var(--accent); }
+  .toc-item.lv3 { padding-left: 26px; }
+  .toc-item.lv3 a { font-size: 12.5px; color: var(--fg-faint); }
+  .toc-item.done a { color: var(--green); }
+  .toc-item .num { color: var(--fg-faint); font-size: 11px; font-family: var(--mono); width: 22px; flex: none; }
+  .toc-item.hidden { display: none; }
+
+  /* ── main ────────────────────────────────── */
+  main { margin-left: var(--sidebar-w); padding: 0 48px 120px; max-width: 980px; }
+  .hero { padding: 56px 0 28px; }
+  .hero h1 { font-size: 34px; margin: 10px 0 8px; letter-spacing: -.5px; }
+  .hero h1 .grad { background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero .sub { color: var(--fg-dim); font-size: 16px; max-width: 640px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .badge { font-size: 12px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--border); color: var(--fg-dim); background: var(--bg-card); }
+  .badge.hl { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+  .part {
+    margin: 48px 0 8px; padding: 18px 22px; border-radius: var(--radius);
+    background: linear-gradient(120deg, var(--accent-soft), transparent 70%);
+    border: 1px solid var(--border-soft); border-left: 4px solid var(--accent);
+  }
+  .part h2 { margin: 0; font-size: 20px; }
+  .part p { margin: 6px 0 0; color: var(--fg-dim); font-size: 14px; }
+
+  .chapter { margin-top: 34px; scroll-margin-top: calc(var(--topbar-h) + 16px); }
+  .chapter > h2 {
+    font-size: 25px; margin: 0 0 4px; padding-bottom: 10px; border-bottom: 1px solid var(--border-soft);
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .chapter > h2 .cn { font-family: var(--mono); font-size: 14px; color: var(--accent); letter-spacing: .05em; }
+  .chapter h3 { font-size: 18px; margin: 30px 0 8px; color: var(--fg); }
+  .chapter h3::before { content: "▸ "; color: var(--accent); }
+  .chapter h4 { font-size: 15.5px; margin: 22px 0 6px; color: var(--fg); }
+  .chapter p { margin: 10px 0; }
+  .chapter ul, .chapter ol { margin: 8px 0; padding-left: 24px; }
+  .chapter li { margin: 5px 0; }
+  .chapter a { color: var(--accent); text-decoration: none; }
+  .chapter a:hover { text-decoration: underline; }
+  .chapter table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 13.5px; }
+  .chapter th, .chapter td { border: 1px solid var(--border); padding: 7px 11px; text-align: left; vertical-align: top; }
+  .chapter th { background: var(--bg-soft); color: var(--fg); }
+  .chapter tr:nth-child(even) td { background: color-mix(in srgb, var(--bg-soft) 55%, transparent); }
+  .chapter strong { color: var(--fg); }
+  .chapter code, .inline-code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg-code);
+    border: 1px solid var(--border-soft); border-radius: 5px; padding: 1px 6px; color: var(--cyan);
+  }
+
+  /* code blocks */
+  pre.code {
+    position: relative; background: var(--bg-code); border: 1px solid var(--border-soft);
+    border-radius: var(--radius); padding: 16px 18px; overflow-x: auto;
+    font-family: var(--mono); font-size: 13px; line-height: 1.65; margin: 14px 0;
+  }
+  pre.code code { background: none; border: none; padding: 0; color: var(--fg); font-size: inherit; }
+  pre.code .langtag {
+    position: absolute; top: 8px; right: 12px; font-size: 10.5px; letter-spacing: .08em;
+    color: var(--fg-faint); text-transform: uppercase; user-select: none;
+  }
+  pre.code .tk-c { color: #6a7a8c; font-style: italic; }
+  pre.code .tk-s { color: #a5d6a5; }
+  pre.code .tk-k { color: #82aaff; }
+  pre.code .tk-n { color: #f78c6c; }
+  pre.code .tk-f { color: #c792ea; }
+  pre.code .tk-y { color: #ffcb6b; }
+  pre.code .tk-t { color: #f07178; font-weight: 700; }
+  [data-theme="light"] pre.code .tk-c { color: #8a97a6; }
+  [data-theme="light"] pre.code .tk-s { color: #2e7d32; }
+  [data-theme="light"] pre.code .tk-k { color: #1a56db; }
+  [data-theme="light"] pre.code .tk-n { color: #c2520a; }
+  [data-theme="light"] pre.code .tk-f { color: #7b1fa2; }
+  [data-theme="light"] pre.code .tk-y { color: #9a6700; }
+  [data-theme="light"] pre.code .tk-t { color: #c62828; }
+
+  .note { border-radius: var(--radius); padding: 12px 16px; margin: 14px 0; font-size: 14px; border: 1px solid; }
+  .note.info { background: rgba(34, 211, 238, .07); border-color: rgba(34, 211, 238, .35); }
+  .note.tip  { background: rgba(74, 222, 128, .07); border-color: rgba(74, 222, 128, .35); }
+  .note.warn { background: rgba(251, 191, 36, .07); border-color: rgba(251, 191, 36, .4); }
+  .note .note-title { font-weight: 700; margin-right: 6px; }
+  .note.info .note-title { color: var(--cyan); }
+  .note.tip .note-title { color: var(--green); }
+  .note.warn .note-title { color: var(--yellow); }
+
+  .exercise {
+    border: 1px dashed var(--accent); border-radius: var(--radius);
+    padding: 14px 18px; margin: 18px 0; background: var(--accent-soft);
+  }
+  .exercise .ex-title { font-weight: 700; color: var(--accent); font-size: 14px; margin-bottom: 6px; }
+  .exercise ol { margin: 6px 0 0; }
+
+  .chapter-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border-soft); }
+  .chapter-nav button {
+    border: 1px solid var(--border); background: var(--bg-card); color: var(--fg-dim);
+    padding: 9px 16px; border-radius: 8px; cursor: pointer; font-size: 13.5px; transition: all .15s;
+    max-width: 46%;
+  }
+  .chapter-nav button b { display: block; color: var(--fg); font-size: 14px; font-weight: 600; }
+  .chapter-nav button:hover { border-color: var(--accent); color: var(--accent); }
+  .chapter-nav button.next { margin-left: auto; text-align: right; }
+
+  .flow {
+    display: flex; flex-wrap: wrap; align-items: stretch; gap: 0; margin: 16px 0;
+    background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 14px;
+  }
+  .flow .node {
+    flex: 1 1 150px; min-width: 130px; border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 10px; text-align: center; font-size: 13px; color: var(--fg-dim);
+  }
+  .flow .node b { display: block; color: var(--fg); font-size: 13.5px; }
+  .flow .node.hot { border-color: var(--accent); background: var(--accent-soft); }
+  .flow .arrow { align-self: center; color: var(--fg-faint); padding: 0 8px; font-size: 16px; }
+
+  .kv { display: grid; grid-template-columns: 170px 1fr; gap: 6px 14px; margin: 12px 0; font-size: 14px; }
+  .kv dt { color: var(--fg-dim); font-family: var(--mono); font-size: 13px; text-align: right; }
+  .kv dd { margin: 0; }
+
+  footer { margin-top: 70px; padding-top: 20px; border-top: 1px solid var(--border-soft); color: var(--fg-faint); font-size: 13px; }
+
+  .toast {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--bg-card); border: 1px solid var(--accent); color: var(--fg);
+    padding: 10px 20px; border-radius: 10px; font-size: 13.5px; z-index: 90;
+    opacity: 0; transition: all .3s; box-shadow: 0 8px 30px rgba(0,0,0,.4);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 1024px) {
+    .sidebar { transform: translateX(-100%); transition: transform .25s; box-shadow: 0 0 40px rgba(0,0,0,.5); }
+    .sidebar.open { transform: translateX(0); }
+    #menuBtn { display: grid; }
+    main { margin-left: 0; padding: 0 22px 100px; }
+    .progress-wrap { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <button class="iconbtn" id="menuBtn" title="目录">☰</button>
+  <div class="brand"><span class="logo">D</span>DSH 深度教学 <small>DeepSeek Harness · 从零到掌控</small></div>
+  <div class="spacer"></div>
+  <div class="progress-wrap">
+    <span id="progressText">0 / 26 章</span>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+  <button class="iconbtn" id="themeBtn" title="切换主题">🌓</button>
+  <button class="iconbtn" id="topBtn" title="回到顶部">↑</button>
+</header>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-search">
+    <input type="search" id="tocSearch" placeholder="搜索章节 / 关键词…">
+  </div>
+  <nav class="toc" id="toc"></nav>
+</aside>
+
+<main>
+  <div class="hero">
+    <div class="badges">
+      <span class="badge hl">循序渐进</span>
+      <span class="badge">从零开始</span>
+      <span class="badge">源码级原理</span>
+      <span class="badge">Cordis 内核</span>
+      <span class="badge">自定义插件</span>
+      <span class="badge">高级定制</span>
+    </div>
+    <h1>DSH <span class="grad">深度教学</span>：从零到掌控 DeepSeek Harness</h1>
+    <p class="sub">一份完整的 DSH 学习手册 —— 从第一次启动，到理解 Cordis 依赖注入内核，再到写出自己的插件、定制自己的 Profile，最终掌控整个框架。</p>
+  </div>
+
+  <div class="note info">
+    <span class="note-title">💡 如何使用本教程</span>
+    左侧是完整目录，点击任意章节跳转；搜索框可按关键词过滤目录。每章末尾有「本章小结 / 动手练习」，在目录里勾选章节即可记录学习进度（自动保存在浏览器本地）。用键盘 <b>←</b>/<b>→</b> 可在章节间翻页，右上角可切换明暗主题。
+  </div>
+
+  <!-- ═══════════════ 第 0 章 ═══════════════ -->
+  <section class="chapter" id="ch0" data-num="0">
+    <h2><span class="cn">CH.0</span> 导学：DSH 是什么，你将学到什么</h2>
+    <p><b>DSH = DeepSeek Harness</b>，是 DeepSeek 开源（MIT 协议）的 AI 编程智能体运行框架，仓库在 <code>github.com/deepseek-ai/deepseek-harness</code>。你现在正在使用的这个 Web GUI（<code>http://127.0.0.1:3080</code>）就是 DSH 的一个「表面（surface）」—— 用浏览器把框架能力呈现出来的方式。</p>
+
+    <h3>0.1 一句话概括 DSH</h3>
+    <p>DSH 是一个<b>以 Cordis 插件框架为内核</b>、用「配置补丁层（patch layer）」组合出不同运行形态（Web 界面、headless 命令行等）的智能体运行时。你可以把它理解为：</p>
+    <div class="flow">
+      <div class="node hot"><b>dsh CLI</b>启动器</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>Profile</b>运行形态</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>Bundle</b>插件组合包</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>Cordis</b>插件内核</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>插件/服务</b>LLM·工具·会话·沙箱…</div>
+    </div>
+    <p>你写的每一行「提示词」、模型调用的每一个工具（pwsh、fs、goal、subagent、workflow……），背后都是一个 Cordis 插件在某个 Context 上注册的服务或工具。掌握了 Cordis，你就掌握了 DSH 的 90%。</p>
+
+    <h3>0.2 课程结构：五个台阶</h3>
+    <table>
+      <tr><th>台阶</th><th>章节</th><th>学完后你会…</th></tr>
+      <tr><td><b>① 认识 DSH</b></td><td>CH.1–3</td><td>启动/停止、读懂 <code>$DSH_HOME</code>、理解 profile/bundle/patch 配置模型、会用 CLI 查配置</td></tr>
+      <tr><td><b>② Cordis 原理</b></td><td>CH.4–9</td><td>讲清楚 Context/Service/Plugin/Fiber/事件/加载器，能读懂框架源码</td></tr>
+      <tr><td><b>③ DSH 插件体系</b></td><td>CH.10–13</td><td>熟悉 DSH 全部插件与服务的职责，理解工具注册、沙箱权限模型</td></tr>
+      <tr><td><b>④ 自定义插件</b></td><td>CH.14–17</td><td>从零写出并安装自己的工具/服务插件，配置 schema 与发布</td></tr>
+      <tr><td><b>⑤ 掌控 DSH</b></td><td>CH.18–22</td><td>定制 Profile、精通 patch 语言、管理会话与 Agent、排障运维</td></tr>
+    </table>
+    <p>附录提供<b>术语表</b>、<b>命令速查</b>和<b>源码阅读地图</b>，建议随时回查。</p>
+
+    <h3>0.3 预备知识</h3>
+    <ul>
+      <li><b>JavaScript/TypeScript 基础</b>（类、Proxy、async/await、装饰器概念）—— cordis 是纯 TS 写的。</li>
+      <li><b>Node.js / npm / pnpm</b> 基本操作 —— DSH 是 Node 应用。</li>
+      <li><b>YAML 基础</b> —— 所有配置都是 YAML。</li>
+      <li>不需要先学过 Koishi 或其他框架；本教程从零讲起。</li>
+    </ul>
+
+    <h3>0.4 本教程的「源码锚点」</h3>
+    <p>本教程中的所有结论都来自你机器上真实安装的 DSH 源码（<code>node_modules/@deepseek-ai/…</code>）。CH.4 起会频繁给出「源码位置」，你可以打开文件对照阅读 —— 这是比任何文档都权威的教材。速查：</p>
+    <pre class="code" data-lang="sh"><code>C:\Users\zhoulinfeng\AppData\Local\npm-cache\_npx\1e7f6d9597241db0\node_modules\@deepseek-ai\
+├── dsh\lib\bin.js                      # dsh CLI 入口(解析参数→分派模式)
+├── dsh\lib\profile-boot-*.js           # Profile 启动:叠补丁层→boot→watch
+├── dsh-base\cordis.patch.yml           # 基础组合包的补丁层(所有 mode 共享)
+├── dsh-web-app\cordis.patch.yml        # Web 表面的补丁层
+├── dsh-headless\cordis.patch.yml       # headless 模式的补丁层
+├── cordis\src\*.ts                     # ★ Cordis 内核源码(context/registry/fiber/events/reflect/service)
+├── cordis-plugin-loader\src\*.ts       # 插件加载器(Entry 树 / patch / !!js 表达式)
+├── dsh-app-boot\lib\index.js           # boot()/composeEntries/applyEntryPatches 补丁引擎
+├── dsh-tools\lib\index.js              # 工具注册表 + defineTool
+├── dsh-tool-pwsh\lib\index.js          # 一个完整工具插件(最佳范本)
+└── schemastery\src\index.ts            # 配置 schema 库(DSH 的 fork)</code></pre>
+
+    <div class="note tip"><span class="note-title">🎯 学习目标</span>
+    学完本教程，你应该能回答：一个「工具」是怎么被模型调用的？改 <code>cordis.patch.yml</code> 为什么立刻生效？新增一个插件要几步？如何把 DSH 改造成你自己的智能体平台？</div>
+  </section>
+
+  <!-- ═══════════════ 第一部分 ═══════════════ -->
+  <div class="part" id="part1">
+    <h2>第一部分 · 认识 DSH —— 先会用，再理解</h2>
+    <p>这一部分不涉及深奥原理，目标是让你对 DSH 的整体形状有一个准确的直觉：它装在哪里、由什么组成、配置怎么流动。请动手跟着做。</p>
+  </div>
+
+  <!-- ═══════════════ 第 1 章 ═══════════════ -->
+  <section class="chapter" id="ch1" data-num="1">
+    <h2><span class="cn">CH.1</span> 认识 DSH：组件全景与第一次启动</h2>
+
+    <h3>1.1 组件全景</h3>
+    <p>DSH 由下面几个层次组成，从外到内：</p>
+    <table>
+      <tr><th>层次</th><th>是什么</th><th>对应代码/目录</th></tr>
+      <tr><td><b>CLI 启动器</b></td><td><code>dsh</code> 命令：解析启动器自己的 flag，选择运行模式</td><td><code>@deepseek-ai/dsh</code> 的 <code>lib/bin.js</code></td></tr>
+      <tr><td><b>Profile（运行形态）</b></td><td>一个目录，声明由哪些 bundle 组合、以及用户自己的配置层</td><td><code>$DSH_HOME/profiles/&lt;name&gt;/</code></td></tr>
+      <tr><td><b>Bundle（组合包）</b></td><td>带 <code>cordis.patch.yml</code> 的插件集合包：<code>dsh-base</code>（核心）+ 各表面（web / headless）</td><td><code>@deepseek-ai/dsh-base</code> 等</td></tr>
+      <tr><td><b>Patch 层</b></td><td>YAML 补丁：按 id 覆盖/插入「行（row）」，层层叠加</td><td><code>cordis.patch.yml</code>、<code>--patch</code> 文件</td></tr>
+      <tr><td><b>Cordis 内核</b></td><td>依赖注入 + 插件生命周期 + 事件总线 + 服务注册表</td><td><code>@deepseek-ai/cordis</code>（v4 fork）</td></tr>
+      <tr><td><b>Loader</b></td><td>把 patch 后的「行」变成真正运行的插件（Entry 树、热重载）</td><td><code>@deepseek-ai/cordis-plugin-loader</code></td></tr>
+      <tr><td><b>插件/服务</b></td><td>LLM 适配、会话、工具、沙箱、子代理、工作流、Web 服务器…</td><td><code>@deepseek-ai/dsh-*</code> 上百个包</td></tr>
+    </table>
+
+    <h3>1.2 本机安装形态</h3>
+    <p>在 Windows 上，DSH 通常通过 <code>npx @deepseek-ai/dsh</code> 或全局安装运行。你机器上的真实情况：</p>
+    <ul>
+      <li><b>DSH 代码</b>：npm 缓存下的 <code>_npx\…\node_modules\@deepseek-ai\</code>（一个版本一份）。</li>
+      <li><b>用户数据（$DSH_HOME）</b>：<code>C:\Users\zhoulinfeng\.dsh</code> —— 这是<b>所有配置与数据</b>的家。</li>
+      <li><b>桌面启动器</b>：<code>dsh-desktop\launch-dsh.ps1</code> —— 等价于执行 <code>node …\dsh\lib\bin.js web --host 127.0.0.1 --port 3080</code>，并自动打开浏览器。</li>
+    </ul>
+
+    <h3>1.3 解剖 $DSH_HOME</h3>
+    <pre class="code" data-lang="sh"><code>C:\Users\zhoulinfeng\.dsh\
+├── profiles\                 # 所有 profile(web / headless / 你自定义的)
+│   ├── web\                  # web profile —— 现在这个 GUI 就是它
+│   │   ├── package.json      #   声明 bundles:[dsh-base, dsh-web-app]
+│   │   ├── cordis.yml        #   空根入口(每次启动被重写,不要手动改)
+│   │   └── cordis.patch.yml  #   ★ 你的用户补丁层(改这里)
+│   └── node_modules\         # 通过 `dsh plugin` 安装到 profile 的插件
+├── sessions\                 # 会话持久化(JSONL 追加日志)
+├── storages\                 # 结构化存储(JSON)
+├── settings.yaml             # 用户设置文档(热重载;如 ui-theme / llm-deepseek 命名空间)
+├── .credentials.yaml         # 托管凭证(Model 页写入, 不落入环境变量)
+└── .anonymous-user-id        # 遥测匿名 ID(UUID;删除即重置)</code></pre>
+    <div class="note info"><span class="note-title">📌 记住这条铁律</span>
+    修改配置只动 <code>cordis.patch.yml</code>，不要动 <code>cordis.yml</code>（它每次启动都会被重写为空的 <code>[]</code>，真正的配置是「补丁叠出来的」）。</div>
+
+    <h3>1.4 配置文件长什么样</h3>
+    <p>你现在机器上的 web profile 三个文件（这就是 DSH 配置模型的最小样例）：</p>
+    <pre class="code" data-lang="yaml"><code># profiles\web\package.json —— 声明用哪些 bundle 组合出这个 profile
+{
+  "name": "dsh-profile-web",
+  "private": true,
+  "dependencies": {},
+  "dsh": {
+    "profile": {
+      "bundles": ["@deepseek-ai/dsh-base", "@deepseek-ai/dsh-web-app"]
+    }
+  }
+}</code></pre>
+    <pre class="code" data-lang="yaml"><code># profiles\web\cordis.yml —— 空根,每次启动重写
+[]
+</code></pre>
+    <pre class="code" data-lang="yaml"><code># profiles\web\cordis.patch.yml —— 你的用户层,目前为空
+[]
+</code></pre>
+    <p>也就是说：<b>web profile = dsh-base 的补丁 + dsh-web-app 的补丁 + 你自己的补丁</b>。后面 CH.2 会详细解释补丁怎么叠。</p>
+
+    <h3>1.5 第一次启动 & 常用命令</h3>
+    <pre class="code" data-lang="sh"><code># 启动 Web GUI(等价于 --profile web)
+dsh web
+dsh --profile web --port 8080        # 换个端口(注意: --port 属于 web 应用,不是启动器)
+
+# 一次性任务模式:跑一个任务,打印结果,退出
+dsh --profile headless "run the tests"
+
+# 查看合并后的配置树(不启动!)
+dsh --profile web --dump-config
+dsh --profile web --dump-default-config   # 只看 bundle 层,不含用户层
+
+# 管理 profile 的插件(透传给 pnpm)
+dsh plugin --profile web add &lt;package&gt;
+dsh plugin --profile web remove &lt;package&gt;
+
+# 帮助
+dsh --help                       # 启动器自己的帮助
+dsh --profile web --help         # web 应用的帮助(是应用解析 --help!)
+</code></pre>
+    <div class="note tip"><span class="note-title">💡 实践建议</span>
+    现在就打开终端执行 <code>dsh --profile web --dump-default-config</code>，你会看到一长串 YAML —— 那就是 base+web 两层 bundle 叠出来的「默认世界」。先感受一下它的规模（数百个行），再往下读。</div>
+
+    <h3>1.6 本章小结</h3>
+    <ul>
+      <li>DSH = CLI 启动器 + Profile + Bundle 补丁层 + Cordis 内核 + 插件体系。</li>
+      <li><code>$DSH_HOME</code>（<code>~/.dsh</code>）是用户数据的唯一家园：profiles、sessions、storages、settings.yaml。</li>
+      <li>profile 目录里 <code>cordis.yml</code> 是空根，<code>cordis.patch.yml</code> 才是用户配置。</li>
+      <li><code>--dump-config</code> 是理解「最终配置」的最佳工具。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 1</div>
+    <ol>
+      <li>执行 <code>dsh --profile web --dump-default-config | more</code>，数一数大约有多少「行（- id: xxx）」，找 5 个你认识的 id。</li>
+      <li>在 <code>$DSH_HOME/profiles/web/cordis.patch.yml</code> 里把 <code>[]</code> 换成 <code>- id: system-prompt\n  config:\n    persona: '你是我的私人助手'</code>，刷新页面（或重启 dsh web），看新会话的提示词变化。</li>
+      <li>把改动还原成 <code>[]</code>。</li>
+    </ol></div>
+  </section>
+
+  <!-- ═══════════════ 第 2 章 ═══════════════ -->
+  <section class="chapter" id="ch2" data-num="2">
+    <h2><span class="cn">CH.2</span> 配置即代码：Profile / Bundle / Patch 三层模型</h2>
+
+    <h3>2.1 核心概念：行（Row / Entry）</h3>
+    <p>在 DSH 里，一切可配置的插件实例都叫<b>「行」</b>。一行就是一个将要在 Cordis 里加载的插件条目，形如：</p>
+    <pre class="code" data-lang="yaml"><code>- id: tool-pwsh                    # 行的稳定 id(其他层靠它来覆盖)
+  name: '@deepseek-ai/dsh-tool-pwsh'  # 要加载的插件包名
+  config:                            # 传给插件的配置(会被 schemastery 校验)
+    enableRunInBackground: true
+  inject: [tools, shell, systemPrompt, shellEnv]   # 行级依赖注入(可选)
+  disabled: false                    # 是否禁用(可选)</code></pre>
+    <p>行的字段：<code>id</code>（唯一标识）、<code>name</code>（插件模块）、<code>config</code>（插件配置）、<code>inject</code>（加载前必须可用的服务）、<code>group</code>（嵌套分组）、<code>disabled</code>。</p>
+
+    <h3>2.2 Patch 层：只写「差异」，不写「全量」</h3>
+    <p>Bundle 和用户配置都是<b>补丁（patch）</b>，不是最终配置。补丁引擎 <code>applyEntryPatches</code>（源码在 <code>dsh-app-boot/lib/index.js</code>）按顺序把补丁叠到空根上，规则只有三条：</p>
+    <ol>
+      <li><b>按 id 覆盖</b>：<code>- id: xxx</code> + 若干字段 = 找到已有行，<b>整体替换</b>这些字段（<code>config</code> 是整块替换，不是深合并！）。</li>
+      <li><b>insert 插入</b>：<code>- insert: [ …新行… ]</code> 在顶层（或某 group 内）追加新行；新行也立即进入索引，后续补丁可以再覆盖它。</li>
+      <li><b>找不到就警告跳过</b>：patch 匹配不到目标 id 会 warn，不会报错。</li>
+    </ol>
+    <pre class="code" data-lang="yaml"><code># 覆盖已有行:把 web 的 system-prompt 整块换掉
+- id: system-prompt
+  config:
+    persona: >-
+      You are my personal coding agent.
+
+# 禁用已有行
+- id: skill-badge
+  disabled: true
+
+# 插入全新的行
+- insert:
+    - id: my-hello
+      name: '@me/dsh-tool-hello'
+      config:
+        greeting: 你好
+</code></pre>
+    <div class="note warn"><span class="note-title">⚠️ 最容易踩的坑</span>
+    「覆盖」是<b>整块替换 config</b>，不是合并。所以 web-app 补丁里 <code>system-prompt</code> 行要重新写全 <code>persona</code>，base 里 <code>session-query-sqlite</code> 行要重写 <code>path</code> 和 <code>openAt</code> 两个键 —— 源码注释里明说了「each row below restates every key it owns」。</div>
+
+    <h3>2.3 补丁叠层的完整顺序</h3>
+    <p>从 <code>profile-boot</code> 源码（<code>composeProfile</code>）可以拿到精确的叠加顺序：</p>
+    <div class="flow">
+      <div class="node"><b>① 空根</b><br><code>[]</code></div>
+      <div class="arrow">→</div>
+      <div class="node"><b>② bundle 补丁</b><br>按 bundles 顺序<br>base → web-app</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>③ profile 用户层</b><br><code>profiles/web/cordis.patch.yml</code></div>
+      <div class="arrow">→</div>
+      <div class="node"><b>④ 家目录用户层</b><br><code>$DSH_HOME/cordis.patch.yml</code><br>(所有 profile 生效)</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>⑤ --patch 覆盖层</b><br>按 argv 顺序</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>⑥ 遥测开关等</b><br>系统补丁</div>
+    </div>
+    <p>后层覆盖前层，同 id 后写胜出。<code>dsh --dump-config</code> 就是把这六步算完打印给你看。</p>
+
+    <h3>2.4 !!js 表达式：配置里的 JavaScript</h3>
+    <p>配置值可以嵌入 JS 表达式，语法是 YAML 的 <code>!!js</code> 标签。加载器把它变成 <code>{__jsExpr: "…"}</code>，在插件 fiber 激活时用 <code>with (ctx) { eval(expr) }</code> 求值（源码：<code>cordis-plugin-loader/src/config/utils.ts</code>）。这意味着表达式里可以直接用 <code>ctx</code> 上已注入的服务：</p>
+    <pre class="code" data-lang="yaml"><code># 环境变量
+- id: sandbox-policy
+  config:
+    mode: !!js process.env.DSH_PERMISSION_MODE ?? 'workspace-write'
+    workspaceRoot: !!js process.cwd()
+
+# 平台判断
+- id: tool-bash
+  disabled: !!js process.platform === 'win32'     # Windows 上禁用 bash
+
+# 读取已注入服务的值(web-app 的真实写法)
+- id: webserver
+  inject: [webStartup]
+  config:
+    host: !!js ctx.webStartup.host ?? '127.0.0.1'
+    port: !!js ctx.webStartup.port ?? 3080
+
+# boot 提供的路径助手
+- id: session-persistence-jsonl
+  config:
+    root: !!js dshHomePath('sessions')</code></pre>
+    <p>配合行级 <code>inject: [webStartup]</code>，DSH 实现了一个优雅的机制：<b>命令行参数先由一个小插件解析并 provide 成服务，配置表达式再读取它</b> —— 于是「flag 驱动配置」不需要任何魔法。</p>
+
+    <h3>2.5 settings.yaml：用户设置文档</h3>
+    <p>与 patch 层不同，<code>$DSH_HOME/settings.yaml</code> 是<b>「设置文档」</b>：按命名空间组织、热重载（保存即生效）、由 Web 的 Settings/Models 页面读写。你机器上现在的真实内容：</p>
+    <pre class="code" data-lang="yaml"><code># C:\Users\zhoulinfeng\.dsh\settings.yaml
+ui-onboarding:
+  welcomeNoticeVersion: 2026-08-13.1
+ui-theme:
+  preference: dark
+</code></pre>
+    <p>模型配置（Models 页）会写入 <code>llm-deepseek:</code> / <code>llm-pi-ai:</code> 命名空间，覆盖 base 层对应适配器的默认值 —— 无需重启。凭证（API Key）则写在 <code>.credentials.yaml</code>，由凭证服务按需解析，不会注入到进程环境变量里。</p>
+
+    <h3>2.6 本章小结</h3>
+    <ul>
+      <li>配置 = 空根 + 若干补丁层；行是基本单位，id 是寻址键。</li>
+      <li>覆盖是整块替换 config；插入用 <code>insert:</code>；禁用以 <code>disabled: true</code>。</li>
+      <li>补丁顺序：bundles → profile 层 → 家目录层 → <code>--patch</code> → 系统补丁。</li>
+      <li><code>!!js</code> 表达式让配置可以编程；<code>settings.yaml</code> 是热重载的用户设置文档。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 2</div>
+    <ol>
+      <li>用 <code>dsh --profile web --dump-config</code> 与 <code>--dump-default-config</code> 对比，找出差异来源（用户层写了什么）。</li>
+      <li>在 web profile 的 <code>cordis.patch.yml</code> 里插入一行 <code>skill-badge</code> 并 <code>disabled: true</code>，保存后观察日志中 loader 的 reload 行，再还原。</li>
+      <li>试试在配置里写一个错误的 id（如 <code>- id: not-exist</code>），观察 dump 输出的 warning。</li>
+    </ol></div>
+  </section>
+
+  <!-- ═══════════════ 第 3 章 ═══════════════ -->
+  <section class="chapter" id="ch3" data-num="3">
+    <h2><span class="cn">CH.3</span> dsh CLI 深入：参数模型与插件管理</h2>
+
+    <h3>3.1 两段式参数模型（Launcher flags vs App flags）</h3>
+    <p>这是 DSH CLI 最反直觉也最优雅的设计：<b>启动器只解析自己的 flag，第一个识别不了的 token 之后全部原样交给 profile 里的应用</b>（源码 <code>dsh/lib/bin.js</code>）。所以：</p>
+    <pre class="code" data-lang="sh"><code>dsh --profile web --port 8080        # --port 是 web 应用的,不是启动器的
+dsh --profile web --help             # 打印的是 web 应用的帮助
+dsh --help                           # 启动器自己的帮助
+dsh --profile headless "run the tests"   # 位置参数 = headless 应用的任务
+</code></pre>
+    <p>应用侧的 flag 由 <code>dsh-cmdline</code> 提供：启动器把剩余参数以不可变快照 <code>cmdlineArgs</code> 服务注入，任何应用插件都可以注入它并解析自己的 flag。web 应用的 <code>web-startup</code> 插件（<code>dsh-web-app/lib/startup.js</code>）就是范例：用 commander 定义 <code>--host/--port/--trusted-host</code>，解析成功后 <code>ctx.provide('webStartup', …)</code>，再由配置行注入读取。</p>
+    <div class="note info"><span class="note-title">📌 安全设计</span>
+    <code>--host 0.0.0.0</code> 被 web-startup 显式拒绝（源码里写明了「would expose remote code execution to the network」）。DSH 默认只绑 127.0.0.1。</div>
+
+    <h3>3.2 启动器 flag 全集</h3>
+    <table>
+      <tr><th>flag</th><th>含义</th></tr>
+      <tr><td><code>--profile &lt;name&gt;</code></td><td>启动 <code>$DSH_HOME/profiles/&lt;name&gt;</code>；不存在的 profile 会从内置模板初始化（web/headless），其余需 <code>dsh plugin</code> 创建</td></tr>
+      <tr><td><code>--patch &lt;path&gt;</code></td><td>追加一个补丁层覆盖（可重复），最后应用</td></tr>
+      <tr><td><code>--dump-config</code></td><td>打印合并后的配置树并退出（含用户层与 --patch）</td></tr>
+      <tr><td><code>--dump-default-config</code></td><td>只打印 bundle 层（不含用户层与 --patch），且不能与 --patch 同用</td></tr>
+      <tr><td><code>web</code> 子命令</td><td><code>--profile web</code> 的别名，后跟 web 应用参数</td></tr>
+      <tr><td><code>plugin</code> 子命令</td><td>管理 profile 插件：<code>dsh plugin --profile &lt;name&gt; &lt;pnpm args&gt;</code></td></tr>
+      <tr><td><code>-V/--version</code></td><td>版本号</td></tr>
+    </table>
+
+    <h3>3.3 dsh plugin：在 profile 里装插件</h3>
+    <p>每个 profile 目录自带 <code>package.json</code> 和 <code>pnpm-workspace.yaml</code>（共享 <code>$DSH_HOME/profiles/node_modules</code>）。<code>dsh plugin</code> 就是把参数<b>原样转发给在该目录执行的 pnpm</b>，因此 pnpm 的一切能力都可用：</p>
+    <pre class="code" data-lang="sh"><code># 从 npm 仓库装
+dsh plugin --profile web add @some/dsh-plugin-xxx
+# 装本地开发的插件(路径依赖)
+dsh plugin --profile web add file:D:/code/my-dsh-plugin
+# 看依赖关系 / 移除 / 更新
+dsh plugin --profile web why @some/pkg
+dsh plugin --profile web remove @some/pkg
+dsh plugin --profile web update
+</code></pre>
+    <p>安装后，你要么把它作为新行 <code>insert:</code> 进 <code>cordis.patch.yml</code>，要么它自己带 bundle patch 声明（见 CH.17）。</p>
+
+    <h3>3.4 启动过程的时间线（预演 CH.9）</h3>
+    <p>从 <code>profile-boot</code> 源码可以梳理出一次 <code>dsh web</code> 的完整启动：</p>
+    <ol>
+      <li>解析启动器参数 → 得到 <code>mode: profile</code> 与 profile 名。</li>
+      <li><code>composeProfile()</code>：读 profile 的 <code>package.json</code> → 解析每个 bundle 的 <code>cordis.patch.yml</code> → 读用户层/家目录层/--patch → <code>composeEntries()</code> 用 <code>applyEntryPatches</code> 算出最终行表；重写 <code>cordis.yml</code> 为空根。</li>
+      <li><code>boot()</code>：<code>new Context()</code> → 设置 <code>baseUrl</code> → <code>ctx.provide('dshHomePath', …)</code> → 加载 <code>Loader</code> 插件 → 注入启动环境与 <code>cmdlineArgs</code> → <code>mountRootInclude</code> 把最终行表挂成 Entry 树 → 等 Loader 树稳定 → 校验所有行都激活成功。</li>
+      <li>启动后挂 HMR/定时器，并 watch 用户补丁文件 —— 这就是「改 patch 即热重载」的来源。</li>
+      <li>安装 SIGINT/SIGTERM 处理器：先优雅 dispose 整棵树（每个插件跑清理），超时 5 秒强制退出。</li>
+    </ol>
+
+    <h3>3.5 本章小结</h3>
+    <ul>
+      <li>启动器 flag 在前，其余参数属于应用；帮助/版本/错误都以非零码退出。</li>
+      <li><code>dsh plugin</code> 是 pnpm 的透传壳，用于管理 profile 的插件依赖。</li>
+      <li>启动 = 叠补丁 + 建 Context + 挂 Loader + 等 Entry 树稳定 + watch 热重载。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 3</div>
+    <ol>
+      <li>执行 <code>dsh --profile web --help</code>，确认打印的是 web 应用帮助。</li>
+      <li>执行 <code>dsh --profile web --dump-config --patch ./nope.yml</code>，观察错误提示。</li>
+      <li>读一遍 <code>dsh-web-app/lib/startup.js</code>（50 行），说出 web-startup 插件「inject 了什么、provide 了什么」。</li>
+    </ol></div>
+  </section>
+
+<!-- ═══════════════ 第二部分 ═══════════════ -->
+  <div class="part" id="part2">
+    <h2>第二部分 · Cordis 原理 —— 一切插件的内核</h2>
+    <p>这一部分是整份教程的重头戏。Cordis 是一个小但精悍的依赖注入插件框架（DSH 使用 DeepSeek 维护的 v4 fork，包名 <code>@deepseek-ai/cordis</code>）。我们会逐文件读懂它的七个核心模块。请打开源码跟着读：<code>node_modules\@deepseek-ai\cordis\src\</code>。</p>
+  </div>
+
+  <!-- ═══════════════ 第 4 章 ═══════════════ -->
+  <section class="chapter" id="ch4" data-num="4">
+    <h2><span class="cn">CH.4</span> Cordis 总览：为「可组合插件」而生的框架</h2>
+
+    <h3>4.1 设计动机</h3>
+    <p>DSH 需要同时跑上百个插件：LLM 适配、会话持久化、十几个工具、沙箱、Web 服务器、浏览器端模块…… 它们之间有复杂的依赖关系（工具依赖工具注册表；Web 服务器依赖参数解析服务；子代理依赖 LLM 与会话）。传统做法是「写一个大对象到处 import」，而 Cordis 的答案是三个正交的抽象：</p>
+    <table>
+      <tr><th>抽象</th><th>回答的问题</th><th>类比</th></tr>
+      <tr><td><b>Context（上下文）</b></td><td>「我从哪来、依赖谁」—— 每个插件在哪个作用域里活</td><td>依赖注入容器</td></tr>
+      <tr><td><b>Service（服务）</b></td><td>「别人能用我什么」—— 具名 API，注册到 ctx 上</td><td>接口 + 单例注册表</td></tr>
+      <tr><td><b>Plugin / Fiber（插件/纤维）</b></td><td>「我怎么活、怎么死」—— 生命周期、资源清理、依赖就绪才启动</td><td>可热插拔的模块</td></tr>
+    </table>
+    <p>再加上<b>事件总线（Events）</b>做解耦通信，就构成了全部。</p>
+
+    <h3>4.2 七源文件地图（先读 index.ts）</h3>
+    <pre class="code" data-lang="sh"><code>cordis/src/
+├── index.ts      # 只做 re-export,告诉你有哪些模块
+├── context.ts    # Context 类:根上下文 + extend/isolate/intercept
+├── events.ts     # EventsService:五种派发模式 + internal/* 钩子
+├── fiber.ts      # Fiber:插件实例的生命周期与 effect 系统
+├── logger.ts     # LoggerService:日志门面
+├── reflect.ts    # ReflectService:Context 代理背后的服务解析器
+├── registry.ts   # RegistryService:插件注册表 + Plugin 类型 + @Inject
+├── service.ts    # Service 基类:所有服务的公共行为
+└── utils.ts      # 内部工具(symbols、DisposableList、getTraceable…)
+</code></pre>
+    <p>阅读顺序建议：<b>context → reflect → registry → fiber → events → service</b>，最后回头看 utils 里的 symbol 常量。</p>
+
+    <h3>4.3 一个最小可运行示例</h3>
+    <p>先把「大局」建立起来 —— 用 <code>@deepseek-ai/cordis</code> 写一个 10 行的程序：</p>
+    <pre class="code" data-lang="js"><code>import { Context } from '@deepseek-ai/cordis'
+
+// 1. 创建根上下文(内部是 Proxy,返回值是被代理的 this)
+const ctx = new Context()
+
+// 2. 注册一个服务(根 fiber 提供)
+ctx.provide('greeter', { hello: (name) => `hello, ${name}` })
+
+// 3. 加载一个插件:依赖 greeter 就绪后才会执行
+ctx.plugin({
+  name: 'greet-user',
+  inject: ['greeter'],
+  apply(ctx, config) {
+    console.log(ctx.greeter.hello(config.who))
+  },
+}, { who: 'world' })   // → hello, world
+
+// 4. 事件:注册 + 派发
+ctx.on('ping', (x) => console.log('pong', x))
+ctx.emit('ping', 42)   // → pong 42
+</code></pre>
+    <p>注意几个细节，它们是 Cordis 的「签名」：</p>
+    <ul>
+      <li><code>ctx.plugin()</code> 返回一个 <b>Fiber</b>（可 await），而不是 Promise 本身。</li>
+      <li>插件有 <code>inject</code> 声明后，<b>不会立即执行</b>，等服务可用才激活（这里是同步场景所以看不出，CH.7 详讲）。</li>
+      <li><code>ctx.on/emit/provide/plugin</code> 都是「mixin」到 ctx 上的方法，真正实现在 <code>ctx.events</code> / <code>ctx.reflect</code> / <code>ctx.registry</code> 服务里。</li>
+    </ul>
+
+    <h3>4.4 Context 接口：ctx 上有什么</h3>
+    <p>从 <code>context.ts</code> 的接口定义，根 ctx 自带四个核心服务：</p>
+    <table>
+      <tr><th>属性</th><th>类型</th><th>职责</th></tr>
+      <tr><td><code>ctx.events</code></td><td>EventsService</td><td>事件总线（on/emit/parallel/serial/bail/waterfall）</td></tr>
+      <tr><td><code>ctx.logger</code></td><td>LoggerService</td><td><code>ctx.logger(name)</code> 拿具名日志器</td></tr>
+      <tr><td><code>ctx.reflect</code></td><td>ReflectService</td><td>服务解析：get/set/provide/accessor/mixin</td></tr>
+      <tr><td><code>ctx.registry</code></td><td>RegistryService</td><td>插件注册表：plugin/inject 与遍历</td></tr>
+      <tr><td><code>ctx.fiber</code></td><td>Fiber</td><td>当前插件的生命周期实例（effect/state/uid）</td></tr>
+      <tr><td><code>ctx.root</code></td><td>Context</td><td>根上下文（所有子 ctx 共享）</td></tr>
+    </table>
+    <p>其余一切（<code>ctx.llm</code>、<code>ctx.session</code>、<code>ctx.tools</code>、<code>ctx.shell</code>、<code>ctx.loader</code>…）都是<b>插件 provide 的服务</b>，在 DSH 里它们由 <code>dsh-*</code> 包提供。这也解释了为什么 DSH 的「插件列表」就是「服务列表」。</p>
+
+    <h3>4.5 本章小结</h3>
+    <ul>
+      <li>Cordis = Context（作用域）+ Service（能力）+ Plugin/Fiber（生命周期）+ Events（通信）。</li>
+      <li>ctx 是 Proxy，普通属性读取会走服务解析；方法大多 mixin 自核心服务。</li>
+      <li>阅读源码的顺序：context → reflect → registry → fiber → events → service。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 4</div>
+    <ol>
+      <li>在任意临时目录 <code>npm init -y && npm i @deepseek-ai/cordis</code>，运行上面的最小示例。</li>
+      <li>把第 3 步的 <code>inject</code> 去掉，观察报错信息（应该和「cannot get property greeter without inject」相关）。</li>
+      <li>读 <code>cordis/src/context.ts</code> 的构造函数，找到 Proxy 是用哪个 handler 创建的。</li>
+    </ol></div>
+  </section>
+
+  <!-- ═══════════════ 第 5 章 ═══════════════ -->
+  <section class="chapter" id="ch5" data-num="5">
+    <h2><span class="cn">CH.5</span> Context 与依赖注入的魔法：Proxy 与 ReflectService</h2>
+
+    <h3>5.1 ctx 是一个 Proxy</h3>
+    <p><code>Context</code> 构造函数最后一行是 <code>return self</code>，其中 <code>self = new Proxy(this, ReflectService.handler)</code>。也就是说：<b>你拿到的 ctx 是一个代理对象</b>，任何属性读/写都会先经过 <code>ReflectService.handler</code> 的 <code>get</code>/<code>set</code> 陷阱。这是 Cordis 全部「魔法」的物理基础。</p>
+
+    <h3>5.2 get 陷阱：一次读取的完整旅程</h3>
+    <p>简化后的 <code>get</code> 陷阱（<code>reflect.ts</code> 第 135 行起）逻辑：</p>
+    <ol>
+      <li><b>特殊属性直通</b>：symbol、<code>prototype</code>/<code>then</code>、纯数字字符串、<code>_</code> 开头 —— 直接 <code>Reflect.get</code>，不参与服务解析（防止 Proxy 干扰内部机制）。</li>
+      <li><b>自有属性直通</b>：<code>ctx.events</code> 这类直接定义在对象上的，直接返回（并套一层 trace 包装）。</li>
+      <li><b>accessor 属性</b>：如果 <code>reflect.props[name]</code> 声明为 accessor，调用其 <code>get</code> 钩子（mixin 就靠这个）。</li>
+      <li><b>服务解析</b>：走 <code>internal/get</code> waterfall → 找到隔离标签 → <b>从当前 fiber 开始向上沿父 fiber 链找 <code>fiber.store[name]</code></b>：找到返回；若 <code>name</code> 在 inject 里但没就绪 → 报「cannot get required service in inactive context」；找不到实现 → 报「cannot get property X without inject」。</li>
+    </ol>
+    <div class="note info"><span class="note-title">📌 为什么报错信息是「without inject」</span>
+    因为 Cordis 的哲学是：<b>不用 <code>inject</code> 声明就读取服务，要么是忘记声明（bug），要么是想读还没就绪的服务（也多半是 bug）</b>。它把「依赖」变成显式声明，从而能自动编排加载顺序。如果你确实想「顺手读一下、没有就算了」，用 <code>ctx.get(name)</code>（不抛错、返回 undefined）。</div>
+
+    <h3>5.3 set 陷阱与「只能自己改自己」</h3>
+    <p><code>set</code> 陷阱对称：对未声明属性的写入，非根 fiber 直接抛 <code>cannot set property X without provide</code>；对服务属性的写入走 <code>internal/set</code> waterfall，最终 <code>reflect.set</code> 会校验<b>写者必须是提供该服务的 fiber</b>（<code>cannot set property in multiple fibers</code>）。这防止了插件间互相乱改状态。</p>
+
+    <h3>5.4 服务解析的核心：ReflectService 的 store</h3>
+    <p>服务实现存在 <code>reflect.store</code> 里，键不是服务名，而是<b>隔离标签（isolation label, 一个 symbol）</b>：</p>
+    <pre class="code" data-lang="js"><code>// 概念模型
+store: { [isolationLabelSymbol]: { name, value, fiber, check } }
+
+// 提供服务:把实现挂到当前 fiber,并登记到 store
+ctx.provide('llm', llmImpl)
+// 读取服务(不要求 inject)
+ctx.get('llm')
+// 覆写(仅限提供者 fiber)
+ctx.set('llm', newImpl)
+</code></pre>
+    <ul>
+      <li><code>provide(name, value, check?)</code>：注册实现，<b>返回一个 disposer</b>；fiber 卸载时自动反注册，并唤醒（notify）所有依赖它的 fiber。</li>
+      <li><code>check</code>：可选的就绪谓词。服务在但「还没准备好」时（如 Loader 的 <code>await: true</code> 拦截），依赖它的插件会保持 PENDING。</li>
+      <li><code>notify(names)</code>：对每个依赖了这些服务的 fiber 重新 <code>_checkImpl</code> + <code>_refresh</code> —— 这就是依赖驱动的自动重载（CH.7）。</li>
+    </ul>
+
+    <h3>5.5 extend / isolate / intercept：三个「作用域手术」</h3>
+    <p>Context 提供的三个方法都返回<b>子上下文</b>（原型链继承父，不修改父）：</p>
+    <table>
+      <tr><th>方法</th><th>效果</th><th>典型用途</th></tr>
+      <tr><td><code>ctx.extend(meta)</code></td><td>子 ctx 继承父的一切，meta 成为自有属性</td><td>每个 fiber 的 ctx 都是 <code>parent.extend({ fiber })</code>；Loader 的 Entry 也 extend 一个 <code>[Entry.key]</code></td></tr>
+      <tr><td><code>ctx.isolate(name, label?)</code></td><td>子 ctx 里对服务 <code>name</code> 的读写换到新隔离标签；同 label 则合并作用域</td><td>「每个 Agent 会话一个隔离的 service」——DSH 的会话隔离、agent scope</td></tr>
+      <tr><td><code>ctx.intercept(name, config)</code></td><td>给 <code>name</code> 服务的「每插件配置」追加一段拦截配置</td><td>Loader 的 <code>inject</code> 配置合并；<code>ctx.inject(deps, cb)</code> 的底层</td></tr>
+    </table>
+    <p><code>isolate</code> 是 DSH 实现<b>多会话隔离</b>的关键：每个 session 的 Agent 运行在 <code>ctx.isolate('agent', sessionLabel)</code> 之类的子上下文里，它的 <code>session</code> 服务与别的会话互不可见。</p>
+
+    <h3>5.6 accessor 与 mixin：把服务方法「焊」到 ctx 上</h3>
+    <ul>
+      <li><code>ctx.accessor(name, { get, set? })</code>：声明一个计算属性。注册进 <code>reflect.props</code>，fiber 卸载时移除。</li>
+      <li><code>ctx.mixin(source, keys)</code>：为 source 服务的每个 key 生成一个转发 accessor（方法会 bind 到服务上）。核心服务就是这么混入 ctx 的：<code>mixin('events', ['on','once','parallel','emit','serial','bail','waterfall'])</code>。</li>
+    </ul>
+    <p>这也是为什么你写 <code>ctx.tools.register(...)</code> 能工作：<code>tools</code> 服务把 <code>register</code> mixin 到了 ctx 上。</p>
+
+    <h3>5.7 本章小结</h3>
+    <ul>
+      <li>ctx = Proxy；读取服务的路径：特殊属性 → 自有属性 → accessor → fiber 链上的 store。</li>
+      <li>服务用 <code>provide</code> 注册、<code>get</code> 免声明读取、<code>set</code> 限提供者覆写、disposer 自动反注册并 notify 依赖方。</li>
+      <li>extend（继承）、isolate（隔离作用域）、intercept（拦截配置）是三个作用域手术。</li>
+      <li>mixin 把服务方法映射到 ctx 上，形成 DSH 里 <code>ctx.xxx</code> 的丰富表面。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 5</div>
+    <ol>
+      <li>读 <code>cordis/src/reflect.ts</code> 的 <code>get</code> 陷阱与 <code>provide/notify</code>，画出「provide 后 notify 依赖方」的流程图。</li>
+      <li>用 <code>ctx.isolate('greeter', Symbol('x'))</code> 在子 ctx 里 provide 不同的 greeter，验证父 ctx 不受影响。</li>
+      <li>解释：为什么 <code>ctx.get('loader')</code> 在 <code>boot()</code> 里被反复用来「探测服务是否存在」？</li>
+    </ol></div>
+  </section>
+
+<!-- ═══════════════ 第 6 章 ═══════════════ -->
+  <section class="chapter" id="ch6" data-num="6">
+    <h2><span class="cn">CH.6</span> Service：DSH 的「服务」抽象</h2>
+
+    <h3>6.1 Service 是什么</h3>
+    <p>Service 是 Cordis 里「注册在 ctx 上的具名能力」的基类（<code>service.ts</code>）。DSH 里几乎每个核心能力都是一个 Service 子类实例：<code>session</code>、<code>llm</code>、<code>tools</code>、<code>shell</code>、<code>loader</code>、<code>jobs</code>、<code>systemPrompt</code>、<code>subagents</code>、<code>goals</code>……</p>
+    <pre class="code" data-lang="js"><code>import { Service } from '@deepseek-ai/cordis'
+
+// 定义一个服务:继承 Service,构造函数里 super(ctx, name) 即完成注册
+class Greeter extends Service {
+  // 静态 provide 字段:不传 name 时的默认服务名
+  static provide = 'greeter'
+  // 可选:Config 类型(拦截配置的 merge 也用它)
+  static Config = { merge: (a, b) => ({ ...a, ...b }) }
+
+  constructor(ctx, options = {}) {
+    super(ctx, 'greeter')
+    this.prefix = options.prefix ?? 'hello'
+  }
+
+  greet(name) {
+    return `${this.prefix}, ${name}`
+  }
+}
+
+// 作为插件加载:构造实例 → 注册服务 → fiber 卸载时自动反注册
+ctx.plugin(Greeter, { prefix: '你好' })
+
+console.log(ctx.greeter.greet('世界'))  // → 你好, 世界
+</code></pre>
+
+    <h3>6.2 Service 的「注册即生命周期」</h3>
+    <p>Service 构造函数做了两件事：</p>
+    <ol>
+      <li><code>ctx.reflect.provide(name, self, check)</code> —— 把实例注册为服务；provide 是 fiber effect，所以<b>服务随提供它的 fiber 自动销毁</b>。</li>
+      <li>若实例有 <code>[Service.invoke]</code> 方法，则返回一个「可调用对象」（函数 + 原型方法的合体），使 <code>ctx.logger</code> 可以 <code>ctx.logger('name')</code> 这样被调用。</li>
+    </ol>
+    <p>因此「写一个服务」＝「写一个插件」：<b>服务就是插件的产出</b>。这也是 DSH 中「行」与「服务」几乎一一对应的原因。</p>
+
+    <h3>6.3 Service 的关键静态 symbol（源码速查）</h3>
+    <table>
+      <tr><th>symbol</th><th>含义</th></tr>
+      <tr><td><code>Service.init</code></td><td>类插件实例构造后由 fiber 调用的初始化钩子（<code>instance[init]?.()</code>）</td></tr>
+      <tr><td><code>Service.check</code></td><td>可用性谓词；provide 时传给 reflect，依赖方据此决定是否保持 PENDING（Loader 用它实现 <code>await: true</code>）</td></tr>
+      <tr><td><code>Service.invoke</code></td><td>存在则服务变成可调用对象（如 <code>ctx.logger()</code>）</td></tr>
+      <tr><td><code>Service.extend</code></td><td>派生扩展实例的助手（子作用域服务）</td></tr>
+      <tr><td><code>Service.resolveConfig</code></td><td>把 intercept 链 + base + head 合并成最终配置（Loader 每插件的 inject 配置就走它）</td></tr>
+      <tr><td><code>Service.filter</code></td><td>事件过滤：服务实例只收到同隔离标签的 ctx 派发的事件（<code>ctx.on(..., {global:true})</code> 可绕过）</td></tr>
+    </table>
+
+    <h3>6.4 intercept 配置解析：Service.resolveConfig</h3>
+    <p>当多个插件都「拦截」同一个服务的配置时（<code>ctx.intercept('llm', {...})</code> 或 <code>inject: { llm: {...} }</code> 对象形式），<code>[resolveConfig]</code> 按 <b>离根近的在前</b> 的顺序把拦截段拼起来：</p>
+    <pre class="code" data-lang="js"><code>// 伪代码:intercept 是原型链,从根到当前逐层收集
+configs = []                        // 祖先拦截段
+while (name in intercept) { configs.unshift(intercept[name]); ... }
+configs.unshift(base)               // 默认配置垫底
+configs.push(head)                  // 最优先配置收尾
+return Config.merge ? Config.merge(...configs) : Object.assign({}, ...configs)
+</code></pre>
+    <p>这解释了 DSH 里「每个会话可以给同一个服务不同的参数」：会话作用域上 <code>intercept('agent', …)</code>，子 ctx 里的插件读到的就是被拦截后的配置。</p>
+
+    <h3>6.5 本章小结</h3>
+    <ul>
+      <li>Service 基类 = 注册即生命周期：构造即 provide，卸载即销毁。</li>
+      <li>服务的可调用性（invoke）、可用性（check）、拦截配置（resolveConfig）、事件过滤（filter）都由静态 symbol 表达。</li>
+      <li>「服务即插件产物」—— 理解这一点，DSH 的插件世界就清晰了。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 6</div>
+    <ol>
+      <li>读 <code>cordis/src/service.ts</code> 全文（115 行），说出构造函数的 return 逻辑。</li>
+      <li>用 <code>ctx.intercept('greeter', { prefix: 'hey' })</code> 再加载一个 Greeter 插件，验证拦截配置生效。</li>
+      <li>思考：DSH 的 <code>ctx.logger('loader')</code> 为什么能当函数调用？</li>
+    </ol></div>
+  </section>
+
+  <!-- ═══════════════ 第 7 章 ═══════════════ -->
+  <section class="chapter" id="ch7" data-num="7">
+    <h2><span class="cn">CH.7</span> Plugin 与 Fiber：插件的生命与依赖编排</h2>
+
+    <h3>7.1 插件的三种形态</h3>
+    <p><code>registry.ts</code> 定义了 <code>Plugin</code> 联合类型，注册表用 <code>resolve()</code> 归一化成「可执行回调」：</p>
+    <pre class="code" data-lang="js"><code>// ① 函数式:(ctx, config) => any
+const plugin = (ctx, config) => { ctx.on('x', ...) }
+plugin.name = 'my-plugin'
+plugin.inject = ['tools']
+plugin.Config = z.object({ ... })
+
+// ② 类式:new (ctx, config) => any
+class MyPlugin {
+  static inject = ['tools']
+  static Config = z.object({ ... })
+  constructor(ctx, config) { ... }
+}
+
+// ③ 对象式:{ apply(ctx, config) }
+const plugin = {
+  name: 'my-plugin',
+  inject: ['tools'],
+  Config: z.object({ ... }),
+  apply(ctx, config) { ... },
+}
+</code></pre>
+    <p>三种形态的公共元数据（<code>Plugin.Base</code>）：<code>name</code>（显示名）、<code>Config</code>（标准 schema 校验器）、<code>inject</code>（依赖声明：数组或对象，对象值=该服务的拦截配置）、<code>provide</code>（本插件提供的服务名）、<code>intercept</code>。</p>
+
+    <h3>7.2 RegistryService：插件注册表</h3>
+    <p><code>registry.ts</code> 内部维护 <code>_internal: Map&lt;callback, Runtime&gt;</code>：</p>
+    <ul>
+      <li><b>Runtime</b> 以「可执行回调」为键 —— 同一个插件被 <code>ctx.plugin()</code> 多次调用，共享一个 runtime，产生多个 fiber。</li>
+      <li><code>ctx.plugin(plugin, config)</code>：校验形态 → 建/取 runtime → <code>new Fiber(ctx, config, resolvedInject, runtime)</code> → 返回「可 await 的 fiber」。</li>
+      <li><code>ctx.inject(deps, callback)</code> 是 <code>plugin({ inject, apply })</code> 的语法糖。</li>
+    </ul>
+    <pre class="code" data-lang="js"><code>// registry.ts 核心(节选)
+plugin(plugin, config, getOuterStack) {
+  const callback = this.resolve(plugin)          // 函数 / 类的构造器 / apply
+  if (!callback) throw new Error('invalid plugin, expect function or object with an "apply" method')
+  let runtime = this._internal.get(callback)     // 复用或新建
+  if (!runtime) {
+    runtime = { name, callback, fibers: new DisposableList(), Config: plugin.Config }
+    this._internal.set(callback, runtime)
+  }
+  const fiber = new Fiber(this.ctx, config, Inject.resolve(plugin.inject), runtime, getOuterStack)
+  // 返回 PromiseLike: await fiber 会等它 settle
+  return wrapped
+}
+</code></pre>
+
+    <h3>7.3 Fiber：一次插件加载 = 一个纤维</h3>
+    <p>Fiber（<code>fiber.ts</code>）是 Cordis 最重要的类。每个插件激活实例对应一个 fiber，它持有：</p>
+    <ul>
+      <li><code>uid</code>：注册表计数器分配的全局唯一 id（0 是根 fiber）；dispose 后置 null。</li>
+      <li><code>ctx</code>：<code>parent.extend({ fiber: this })</code> —— 插件运行在专属子上下文。</li>
+      <li><code>inject</code>：解析后的依赖表（服务名 → 拦截配置）。</li>
+      <li><code>_store</code>：当前已解析的依赖实现快照。</li>
+      <li><code>_disposables</code>：effect 产生的清理器列表（后进先出执行）。</li>
+      <li><code>state</code>：生命周期状态机。</li>
+    </ul>
+
+    <h3>7.4 生命周期状态机（务必背下来）</h3>
+    <div class="flow">
+      <div class="node"><b>PENDING</b><br>依赖未齐</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>LOADING</b><br>跑插件回调</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>ACTIVE</b><br>已激活</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>UNLOADING</b><br>跑清理</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>PENDING/LOADING</b><br>依赖恢复则重载</div>
+    </div>
+    <div class="flow">
+      <div class="node"><b>ACTIVE</b><br>启动抛错</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>FAILED</b><br>记录错误</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>UNLOADING</b><br>dispose()</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>DISPOSED</b><br>终结</div>
+    </div>
+    <ul>
+      <li><b>依赖驱动</b>：每个依赖就绪/消失时，<code>_checkImpl</code> 更新实现快照，<code>_refresh</code> 计算「epoch = 各依赖提供者 fiber uid 的拼接」，epoch 变化就触发 <code>_setEpoch</code> → <code>_reload</code> 或 <code>_unload</code>。这就是「服务 A 加载后，依赖 A 的插件 B 自动激活」的机制。</li>
+      <li><b>配置校验</b>：激活前 <code>resolveConfig</code> 用 runtime 的 <code>Config['~standard'].validate(config)</code> 校验（standard-schema 协议，schemastery 满足它）；失败抛 <code>ValidationError</code>（fiber 进 FAILED，await 时抛出）。</li>
+      <li><b>重载</b>：<code>fiber.update(config)</code> 走 <code>internal/update</code> waterfall（Loader/持久化可以拦截或否决），然后 <code>restart()</code>（卸载再加载）。</li>
+    </ul>
+
+    <h3>7.5 effect 系统：插件的资源纪律</h3>
+    <p><code>ctx.effect(execute, label?)</code> 是 Cordis 的资源管理核心。它立即执行 <code>execute</code>，收集其返回的 disposer，在 fiber 卸载时<b>逆序</b>执行所有 disposer：</p>
+    <pre class="code" data-lang="js"><code>ctx.effect(() => {
+  const timer = setInterval(() => tick(), 1000)
+  // 返回清理函数:卸载时自动执行
+  return () => clearInterval(timer)
+}, 'my interval')
+
+ctx.effect(function* () {
+  const a = ctx.on('x', fn1)      // on 返回 disposer
+  yield a
+  const b = ctx.provide('svc', v) // provide 返回 disposer
+  yield b
+}, 'my resources')
+</code></pre>
+    <ul>
+      <li>接受函数 / Promise / (async) 可迭代对象；非法返回值抛 <code>Invalid effect</code>。</li>
+      <li>效果带 <code>label</code> 与嵌套树（<code>EffectMeta</code>），<code>fiber.getEffects()</code> 可诊断。</li>
+      <li>已 dispose 的 fiber 再注册效果会抛 <code>CordisError('INACTIVE_EFFECT')</code>。</li>
+      <li><b>ctx.on / ctx.provide / ctx.plugin 全部基于 effect</b> —— 所以插件卸载时，事件监听、服务、子插件全部自动清理，这是 DSH 能安全热重载的根基。</li>
+    </ul>
+
+    <h3>7.6 本章小结</h3>
+    <ul>
+      <li>插件三种形态（函数/类/对象），注册表以回调为键建 runtime，一次加载一个 fiber。</li>
+      <li>Fiber 状态机：PENDING→LOADING→ACTIVE⇄UNLOADING，FAILED/DISPOSED 为终态；依赖驱动重载。</li>
+      <li>effect 系统 = 声明式资源清理，逆序执行；它是热重载安全的根基。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 7</div>
+    <ol>
+      <li>读 <code>cordis/src/fiber.ts</code> 的 <code>_reload/_unload/_setEpoch</code>（约 100 行），手写状态转换表。</li>
+      <li>写一个插件：provide 一个服务，再写第二个插件 inject 它，观察两个 fiber 的 state 变化日志（监听 <code>internal/status</code>）。</li>
+      <li>在插件里 <code>ctx.effect(() => { throw new Error('boom') })</code>，观察 fiber 进入 FAILED 与日志输出。</li>
+    </ol></div>
+  </section>
+
+  <!-- ═══════════════ 第 8 章 ═══════════════ -->
+  <section class="chapter" id="ch8" data-num="8">
+    <h2><span class="cn">CH.8</span> 事件总线：五种派发模式与 internal 钩子</h2>
+
+    <h3>8.1 事件总线的角色</h3>
+    <p>服务解决「依赖」，事件解决「解耦」：插件间不知道彼此存在，只通过事件名通信。Cordis 的事件总线（<code>events.ts</code>）比普通 EventEmitter 强在三点：</p>
+    <ul>
+      <li><b>五种派发模式</b>，覆盖同步/异步/短路/洋葱等需求。</li>
+      <li><b>上下文过滤</b>：监听器默认只收到「同一隔离作用域」派发的事件（<code>{global: true}</code> 绕过）。</li>
+      <li><b>生命周期自动清理</b>：<code>ctx.on</code> 是 effect，fiber 卸载自动移除。</li>
+    </ul>
+
+    <h3>8.2 五种派发模式（速查表）</h3>
+    <table>
+      <tr><th>方法</th><th>行为</th><th>返回值</th><th>适用场景</th></tr>
+      <tr><td><code>ctx.emit(name, ...args)</code></td><td>同步调用所有监听器，不等待 Promise</td><td>void</td><td>通知类（日志、UI 刷新）</td></tr>
+      <tr><td><code>await ctx.parallel(name, ...)</code></td><td>并发执行并等待全部</td><td>Promise&lt;void&gt;（有错抛 AggregateError）</td><td>需要全部完成的通知</td></tr>
+      <tr><td><code>await ctx.serial(name, ...)</code></td><td>按顺序 await，遇到「bail 值」提前停</td><td>首个 bail 值</td><td>「谁先处理谁赢」</td></tr>
+      <tr><td><code>ctx.bail(name, ...)</code></td><td>同步版 serial（不 await）</td><td>首个 bail 值</td><td>同步短路（如 internal/listener 拦截）</td></tr>
+      <tr><td><code>ctx.waterfall(name, ..., next)</code></td><td>洋葱模型：每个监听器包一层，调 <code>next()</code> 才继续</td><td>最外层返回值</td><td>中间件/可否决的管道（config 解析、update 提交流水线）</td></tr>
+    </table>
+    <div class="note info"><span class="note-title">📌 bail 值定义</span>
+    <code>isBailed(v) = v !== null && v !== false && v !== undefined</code> —— 返回 null/false/undefined 表示「不拦截，继续」。</div>
+
+    <h3>8.3 waterfall 的洋葱模型</h3>
+    <pre class="code" data-lang="js"><code>// 注册两个监听器,后者先注册先执行(默认 push 尾部,prepend 可插队)
+ctx.on('fetch', (url, next) => {
+  console.log('before', url)
+  const result = next()          // 调用链上的下一个
+  console.log('after', result)
+  return '[' + result + ']'      // 返回值会继续向上传递
+})
+ctx.on('fetch', (url, next) => {
+  return 'content-of-' + url     // 最内层:不调 next 就到此为止
+})
+
+ctx.waterfall('fetch', '/a', () => 'base')
+// → before /a
+// → after content-of-/a
+// 返回 '[content-of-/a]'
+</code></pre>
+    <p>DSH 里 waterfall 随处可见：<code>internal/config</code>（插件配置解析管线）、<code>internal/update</code>（配置更新流水线，Loader 在里面做持久化写回）、<code>internal/get</code>/<code>internal/set</code>（服务读写的拦截链）。</p>
+
+    <h3>8.4 上下文过滤（filter）</h3>
+    <p>每个 ctx 可以带 <code>[Context.filter]</code> 谓词（<code>ctx.on</code> 时由 <code>dispatch</code> 检查）：派发时 <code>thisArg?.[Context.filter]?.(hook.ctx)</code> 为假则跳过该监听器。Service 的默认 filter 是「监听器 ctx 与派发 ctx 的服务隔离标签一致」—— 这就是 DSH 多会话下事件互不串台的基础。</p>
+
+    <h3>8.5 internal/* 事件：框架的「可插拔内脏」</h3>
+    <p>Cordis 把自身的核心操作也做成事件，让 Loader、HMR、持久化能无缝介入。这是理解 DSH 一切「魔法」的关键表：</p>
+    <table>
+      <tr><th>事件</th><th>模式</th><th>载荷</th><th>谁在用</th></tr>
+      <tr><td><code>internal/plugin</code></td><td>emit</td><td>fiber</td><td>Loader 记录 entry↔fiber 映射、检测自我 dispose</td></tr>
+      <tr><td><code>internal/status</code></td><td>emit</td><td>fiber, oldState</td><td>状态监控</td></tr>
+      <tr><td><code>internal/config</code></td><td>waterfall</td><td>config, next</td><td>Loader 对配置做 <code>!!js</code> 插值（interpolate）</td></tr>
+      <tr><td><code>internal/update</code></td><td>waterfall</td><td>config, noSave, next</td><td>Loader 持久化写回、reload 日志；HMR 否决</td></tr>
+      <tr><td><code>internal/get</code> / <code>internal/set</code></td><td>waterfall</td><td>ctx, name, value/error, next</td><td>服务读写的统一拦截点（proxy 每次读取都过这里）</td></tr>
+      <tr><td><code>internal/listener</code></td><td>bail</td><td>name, listener, prepend</td><td>特殊事件注册的替换（如 fiber 级 update hooks）</td></tr>
+      <tr><td><code>internal/service</code></td><td>emit</td><td>name, value</td><td>服务提供/更新通知</td></tr>
+      <tr><td><code>internal/dispatch</code></td><td>emit</td><td>mode, name, args, thisArg</td><td>事件派发诊断（非 internal 事件才触发）</td></tr>
+    </table>
+
+    <h3>8.6 本章小结</h3>
+    <ul>
+      <li>五种派发模式：emit / parallel / serial / bail / waterfall。</li>
+      <li>监听器默认受上下文过滤；on/once 都是 effect，随 fiber 清理。</li>
+      <li>框架内脏是 internal/* 事件 —— Loader、持久化、HMR 都是「监听这些事件的插件」。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 8</div>
+    <ol>
+      <li>读 <code>cordis/src/events.ts</code> 的 <code>dispatch()</code>，说出 thisArg 是如何被识别并用作 filter 的。</li>
+      <li>写代码验证 waterfall 的 veto：最内层不调 next()，外层收不到「内容」。</li>
+      <li>监听 <code>internal/plugin</code>，加载一个插件，观察事件携带的 fiber 信息。</li>
+    </ol></div>
+  </section>
+
+<!-- ═══════════════ 第 9 章 ═══════════════ -->
+  <section class="chapter" id="ch9" data-num="9">
+    <h2><span class="cn">CH.9</span> Loader 与补丁引擎：配置如何变成运行的插件</h2>
+
+    <h3>9.1 Loader：Entry 树</h3>
+    <p>前八章我们认识了 Cordis 内核；现在看 DSH 如何把「patch 出来的行」变成真正运行的插件。<code>cordis-plugin-loader</code> 提供 <code>Loader</code> 服务（<code>ctx.loader</code>），它把配置组织成一棵<b>Entry 树</b>：</p>
+    <ul>
+      <li><b>Entry</b>：一行配置（id/name/config/group/disabled/inject），对应未来一个插件 fiber。它有自己 extend 出来的 ctx（带 <code>[Entry.key]</code>），通过 <code>entry.update()</code> 合并新配置并决定「原地热更 or 换插件重启」。</li>
+      <li><b>EntryGroup</b>：嵌套分组（group: true），子行挂在 group 的 config 数组里。</li>
+      <li><b>EntryTree</b>：一棵树的根，负责按 <code>baseUrl</code> import 插件模块、<code>write()</code> 持久化。</li>
+    </ul>
+    <div class="flow">
+      <div class="node"><b>cordis.yml</b><br>空根</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>Entry 树</b><br>行=Entry</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>import(name)</b><br>按 baseUrl 解析包</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>ctx.plugin()</b><br>启动 fiber</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>fiber.entry</b><br>回链</div>
+    </div>
+
+    <h3>9.2 Loader 如何「接管」Cordis 内核</h3>
+    <p>Loader 本身是一个插件，它的构造函数里注册了几个全局监听器（源码 <code>cordis-plugin-loader/src/index.ts</code>），这是它「魔法」的全部：</p>
+    <table>
+      <tr><th>监听</th><th>Loader 做的事</th></tr>
+      <tr><td><code>internal/plugin</code></td><td>把新 fiber 关联到它的 entry（<code>fiber.entry = …</code>），并把 entry 的 <code>inject</code> 合并进 fiber 的依赖表；检测「插件自我 dispose」→ 把该行标记 <code>disabled: true</code> 并写回磁盘</td></tr>
+      <tr><td><code>internal/config</code></td><td>对 entry 行的配置做 <code>interpolate()</code> —— 递归求值 <code>!!js</code> 表达式（group/include 等载体行除外）</td></tr>
+      <tr><td><code>internal/update</code></td><td>插件 <code>update()</code> 后把新配置写回 entry 并持久化（<code>unparse</code> 化简）；打印 reload 日志</td></tr>
+    </table>
+    <p>换句话说：<b>Loader 不用改 Cordis 一行代码</b>，只靠 internal 事件就实现了「配置↔插件」的双向绑定。这就是 CH.8 那张 internal 表的价值。</p>
+
+    <h3>9.3 Entry.update：三种更新路径</h3>
+    <p><code>entry.update(options)</code> 比较新旧配置算出 diff，然后分三路：</p>
+    <ol>
+      <li><b>只改 config</b>：<code>fiber.update(newConfig, true)</code> 原地热更（走 <code>internal/update</code> 流水线，持久化照常）。</li>
+      <li><b>改 name/inject/group</b>：先 dispose 旧 fiber，import 新模块再启动 —— 换插件。</li>
+      <li><b>变 disabled</b>：dispose 旧 fiber，行停用。</li>
+    </ol>
+    <p>任一失败都会回滚到旧状态（源码里大量 <code>rollback</code> 分支），保证热重载的原子性。</p>
+
+    <h3>9.4 补丁引擎：applyEntryPatches 精读</h3>
+    <p>补丁语义实现在 <code>dsh-app-boot/lib/index.js</code> 的 <code>applyEntryPatches(data, patches, warn)</code>（CH.2 讲过三条规则，这里是精确行为）：</p>
+    <pre class="code" data-lang="js"><code>// 1. 深拷贝输入(绝不原地改,热重载才能回退)
+data = structuredClone(data)
+// 2. 建立 id → entry 索引(递归进 group)
+entryMap = new Map(); buildMap(data)
+// 3. 逐个应用 patch
+for (const patch of patches) {
+  const { id, insert, name, ...overrides } = patch
+  if (insert) {                    // 插入:顶层或 id 指定的 group 内
+    if (id) { target = entryMap.get(id); target.config.push(...insert) }
+    else data.push(...insert)
+    buildMap(insert)               // ★ 刚插入的行立即可被后续 patch 寻址
+    continue
+  }
+  if (!id) { warn('id is required'); continue }
+  target = entryMap.get(id)
+  if (!target) { warn('entry not found'); continue }
+  if (name && name !== target.name) { warn('name mismatch'); continue }  // 防呆
+  for (const [k, v] of Object.entries(overrides)) target[k] = v           // 整键覆盖
+}
+</code></pre>
+    <p>注意 <code>config</code> 覆盖是「整体替换 target.config」，<code>disabled</code> 也是直接赋值 —— 所以「禁用一行」只要 <code>- id: x \n  disabled: true</code>。</p>
+
+    <h3>9.5 热重载是怎么发生的</h3>
+    <p><code>watchUserPatches</code>（app-boot）监听 profile 层与家目录层补丁文件的变更：文件变化 → 重新读全部补丁层 → 重算行表 → <code>root.update(新行表)</code> → Entry 树 diff 出增删改 → 逐个 Entry.update。所以你改 <code>cordis.patch.yml</code> 保存，几秒内新配置就生效，日志里能看到 <code>reload plugin %C</code>。</p>
+    <div class="note warn"><span class="note-title">⚠️ 热重载的边界</span>
+    只有「行级」变化能热更。改 <code>dsh.profile.bundles</code>（换组合包）、改依赖版本、改 JS 代码本身，需要重启进程。前端插件（浏览器侧）的代码热更走 <code>dsh-client-hmr</code> + <code>pnpm run dev:web</code> 构建 watcher。</div>
+
+    <h3>9.6 本章小结</h3>
+    <ul>
+      <li>Loader 用 Entry 树管理「配置行 ↔ 插件 fiber」；靠 internal/* 事件与内核解耦。</li>
+      <li>Entry.update 分三条路径（热更 config / 换插件 / 停用），失败回滚。</li>
+      <li>补丁引擎：深拷贝 → id 索引 → insert/覆盖/禁用，后写胜出。</li>
+      <li>文件 watcher 驱动热重载，配置即代码的真正含义在此。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 9</div>
+    <ol>
+      <li>读 <code>cordis-plugin-loader/src/index.ts</code> 的构造函数，列出它注册的所有内部监听器。</li>
+      <li>读 <code>cordis-plugin-loader/src/config/entry.ts</code> 的 <code>update()</code>，找出 diff 的判定逻辑（哪些键变化需要换插件）。</li>
+      <li>打开 DSH 日志（<code>dsh-desktop/logs/</code>），修改一次 patch 文件，对照日志找 reload 行。</li>
+    </ol></div>
+  </section>
+
+  <!-- ═══════════════ 第三部分 ═══════════════ -->
+  <div class="part" id="part3">
+    <h2>第三部分 · DSH 插件体系 —— 上百个插件如何协作</h2>
+    <p>现在你有 Cordis 内核的完整地图了。这一部分把 DSH 的「插件世界」展开：三大 bundle 各管什么、服务生态怎么分群、工具插件怎么写、沙箱权限怎么流转。读完你会对 <code>--dump-config</code> 输出的每一行都有感觉。</p>
+  </div>
+
+  <!-- ═══════════════ 第 10 章 ═══════════════ -->
+  <section class="chapter" id="ch10" data-num="10">
+    <h2><span class="cn">CH.10</span> DSH 的插件地图：三大 Bundle 与行清单解读</h2>
+
+    <h3>10.1 三个组合包的职责划分</h3>
+    <table>
+      <tr><th>Bundle</th><th>角色</th><th>要点</th></tr>
+      <tr><td><b>@deepseek-ai/dsh-base</b></td><td>核心层：所有模式共享</td><td>一次性 insert 全部基础行：LLM、会话、工具、沙箱、子代理、目标、工作流、计划模式…… 行注释里写明「mode-specific 的值不放这里」</td></tr>
+      <tr><td><b>@deepseek-ai/dsh-web-app</b></td><td>Web 表面层</td><td>覆盖 persona、禁掉「进程级 agent 行」（Web 改成每会话挂 agent preset）、插入 Web 主机行（webserver、api-gateway、workspace、storage…）与一整套浏览器插件（ui-*、connection、modules…）</td></tr>
+      <tr><td><b>@deepseek-ai/dsh-headless</b></td><td>一次性任务表面</td><td>覆盖 persona、插入 code-runtime + headless-startup + headless-runner，跑完打印结果退出</td></tr>
+    </table>
+    <p>base 里有两类行的哲学值得记住（源码注释原话）：<b>「行顺序没有加载语义（激活是服务可用性驱动的），分组只是为了读者」</b> —— 插件的启动顺序完全由依赖关系决定，不是配置顺序。这也是 Cordis 与普通「按序启动插件」框架的本质区别。</p>
+
+    <h3>10.2 Web 表面为何「禁用」base 的工具行</h3>
+    <p>打开 <code>dsh-web-app/cordis.patch.yml</code> 后半段，你会看到一堆 <code>disabled: true</code>：tool-bash、tool-pwsh、tool-fs、tool-skill、tool-goal、tool-subagent、tool-workflow、plan-mode、agent-instructions…… 注释解释得很清楚：</p>
+    <ul>
+      <li>Web 是多会话的，base 里那些行是「进程级单 agent」组合；Web 把它们禁用，改由<b>每个会话挂一个 agent preset</b> 来组合自己的工具集。</li>
+      <li>但「注册表」本体留在 host 平面：<code>jobs</code>、<code>subagents</code>、<code>goals</code>、<code>skills</code>、token-meter 等服务跨会话共享，不能被 preset 私有化（注释里每个 disable 都写了理由，这是 DSH 架构决策的绝佳教材）。</li>
+    </ul>
+    <div class="note info"><span class="note-title">📌 重要概念：host 平面 vs agent/preset 平面</span>
+    服务按「谁能看见」分层：host 平面（进程级，如 loader、jobs 注册表、subagents 注册表）与每会话的 agent 平面（模型看到的工具、提示词段）。「一个服务该放哪个平面」是 DSH 架构讨论的核心问题 —— web-app 补丁的注释几乎每行都在论证这个。</div>
+
+    <h3>10.3 读懂 --dump-config 的行清单</h3>
+    <p>用 <code>dsh --profile web --dump-config</code> 导出行清单后，按功能分群（这是 DSH 服务生态的完整地图，CH.11 逐个讲解）：</p>
+    <pre class="code" data-lang="yaml"><code># ── 基础设施 ──
+timer / hmr / loader        # 定时器、热重载、加载器
+llm / llm-retry / llm-deepseek / llm-pi-ai   # 模型适配与重试
+settings / credentials      # 设置文档与凭证库
+sandbox / sandbox-policy / bash-sandbox / pwsh-sandbox / approval / permission
+fs-sandbox / fs-observation-policy / subprocess
+# ── 会话与代理 ──
+session / session-persistence-jsonl / session-query-sqlite / session-projection
+session-title / session-title-llm / session-stats / session-checkpoint-policy
+session-telemetry-otel / agent / agent-default-model / agent-loop / agent-instructions
+system-prompt / plan-mode
+# ── 工具与提示词 ──
+tools / tool-bash / tool-pwsh / tool-fs / tool-fs-search / tool-str-replace-editor
+tool-todo / tool-goal / tool-ralph / tool-workflow / tool-subagent* / tool-jobs
+tool-web / web / web-search-deepseek / tool-skill / skill / skill-filesystem
+timeout-policy / repeat-tool-reminder / tool-result-pruner / spill-*
+commands / command-feedback / command-goal / command-compact
+# ── 目标/子代理/工作流 ──
+goal / goal-round-driver / subagent / subagent-spawn-in-process / subagent-fork-in-process
+workflow-worker-thread / typert* / api-gateway
+# ── Web 专属 ──
+webserver / web-runtime / api-gateway / connection / modules / client-runtime
+storage / storage-json / storage-domain / workspace / plugin-inventory
+code-runtime / directory-picker / message-feedback / session-log-download
+ui-theme / ui-layout / ui-sidebar / ui-settings* / ui-conversation / ui-tool / ui-cordis
+ui-workflow-run / ui-deliverables / ui-workspace / ui-input-trigger / ui-commands
+ui-skill / ui-subagent / ui-jobs / ui-goal / ui-message-feedback / ui-model-selection
+ui-permission / ui-agent-preset / ui-settings-plugins / ui-plan / ui-user-questions / ui-trajectory
+agent-presets
+</code></pre>
+
+    <h3>10.4 dsh.client 行：浏览器插件的特殊机制</h3>
+    <p>Web 表面里有一批「双面（dual-face）」插件：node 端（host 侧逻辑）+ 浏览器端（<code>client.js</code>）。<code>modules</code> 行的 node 半部分扫描 <code>dsh.client</code> 行树，把模块表合成 <code>window.__DSH_BOOT__</code> 注入页面 —— 浏览器端在内核启动前就拿到模块表，然后 cordis 在浏览器里再跑一份（<code>cordis-client-runner</code>）。这就是「同一个 DSH 进程，前端也有一个 Cordis」。</p>
+
+    <h3>10.5 本章小结</h3>
+    <ul>
+      <li>base 是所有模式的公共核心；web/headless 是表面层，通过覆盖+插入差异化。</li>
+      <li>「host 平面 vs agent 平面」是理解 Web 配置的钥匙。</li>
+      <li>启动顺序由依赖决定，与配置顺序无关。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 10</div>
+    <ol>
+      <li>打开 <code>dsh-web-app/cordis.patch.yml</code>，挑 3 个 <code>disabled: true</code> 的行，读它的注释，用自己的话解释为什么留在 host 平面。</li>
+      <li>对比 base 与 web-app 补丁里 <code>system-prompt</code> 行的写法差异。</li>
+      <li>在浏览器开发者工具里执行 <code>window.__DSH_BOOT__</code>，观察模块表结构。</li>
+    </ol></div>
+  </section>
+
+  <!-- ═══════════════ 第 11 章 ═══════════════ -->
+  <section class="chapter" id="ch11" data-num="11">
+    <h2><span class="cn">CH.11</span> 服务生态巡礼：LLM、会话、Agent、子代理、目标、工作流</h2>
+
+    <h3>11.1 按「领域」给服务分组</h3>
+    <p>DSH 的服务可以分成几个清晰的领域。理解每个领域 = 知道「模型调用一次工具时，后台发生了什么」。</p>
+
+    <h3>11.2 模型层：llm / llm-deepseek / llm-pi-ai / llm-retry</h3>
+    <ul>
+      <li><code>ctx.llm</code>：模型调用门面，按 provider/model 路由到适配器。</li>
+      <li><code>llm-deepseek</code>：官方适配器；<b>不内联任何 key/endpoint</b>，每次请求从 <code>llm-deepseek:</code> 设置段 + 凭证库解析（CH.2.5）。</li>
+      <li><code>llm-pi-ai</code>：多供应商孪生，默认休眠（零路由），直到设置文档提供 provider profiles 才注册路由 —— 「哪个适配器存在是组合问题，哪些 provider 在跑是用户设置问题」。</li>
+      <li><code>llm-retry</code>：请求重试策略。</li>
+    </ul>
+
+    <h3>11.3 会话层：session 家族</h3>
+    <p>会话（session）是 DSH 的「一次对话/一个任务」单元：</p>
+    <table>
+      <tr><th>服务</th><th>职责</th></tr>
+      <tr><td><code>session</code></td><td>会话核心：消息、header（cwd、agent）、生命周期</td></tr>
+      <tr><td><code>session-persistence-jsonl</code></td><td>追加式 JSONL 日志持久化（<code>dshHomePath('sessions')</code>）—— 不可变、可重放</td></tr>
+      <tr><td><code>session-query-sqlite</code></td><td>全文检索（Web 默认 <code>openAt: never</code> 惰性开启；想开启就在用户层覆盖成 <code>first-search</code>）</td></tr>
+      <tr><td><code>session-projection</code> + 各 <code>session-projection-cache</code></td><td>投影注册表：从事件流派生出可查询视图（todos、goals、stats……）</td></tr>
+      <tr><td><code>session-title*</code></td><td>自动起标题（LLM 或 fallback）</td></tr>
+      <tr><td><code>session-stats</code> / <code>session-checkpoint-policy</code></td><td>统计条；每次模型请求前的持久化检查点</td></tr>
+      <tr><td><code>session-telemetry-otel</code></td><td>遥测导出（默认 DISABLED，<code>DSH_TELEMETRY_MODE</code> 显式开启）</td></tr>
+    </table>
+
+    <h3>11.4 Agent 层：agent / agent-loop / agent-presets / system-prompt</h3>
+    <ul>
+      <li><code>agent</code>：Agent 注册表与核心类型 —— 一个 Agent = 一个会话的「模型执行者」，携带自己的工具集、提示词段、委托后端。</li>
+      <li><code>agent-loop</code>：启动时创建 agent（base 默认空数组；Web 由客户端请求创建会话时挂 agent）。</li>
+      <li><code>agent-presets</code>：preset 罗盘 —— 每个 preset 是一个「组合」（工具 + 提示词段 + 委托能力），Web 每会话挂一个；自带 <code>config/agent-presets/</code>（system trust）与 <code>$DSH_HOME/.agent-presets</code>（用户可写）。</li>
+      <li><code>system-prompt</code>：提示词段注册表 —— 插件用 <code>ctx.systemPrompt.section({name, order, text})</code> 贡献自己的段；persona 是 0 号段。</li>
+      <li><code>agent-instructions</code>：额外指令（有字节上限）。</li>
+    </ul>
+
+    <h3>11.5 子代理层：subagent 家族</h3>
+    <ul>
+      <li><code>subagents</code>：进程级注册表（跨会话查询、followup）；provider 按全局唯一名注册。</li>
+      <li><code>subagent-spawn-in-process</code> / <code>subagent-fork-in-process</code>：两个后端 —— spawn（全新子会话）与 fork（继承父会话历史）。</li>
+      <li><code>tool-subagent</code>（continuable 后台子代理）、<code>tool-subagent-fork</code>（一次性）、<code>tool-subagent-control</code>（list/followup 控制面）、<code>tool-subagent-report</code>（子代理的结果回传通道）、<code>tool-subagent-list-agents</code>。</li>
+    </ul>
+
+    <h3>11.6 目标与计划层：goal / plan-mode</h3>
+    <ul>
+      <li><code>goal</code> + <code>goal-round-driver</code>：持久化同会话目标（跨自动续跑轮次）；<code>tool-goal</code> 暴露给模型，<code>command-goal</code> 暴露给用户（/goal）。</li>
+      <li><code>plan-mode</code>：计划模式 —— 注入一整段 plan-mode 提示词（base 补丁里有全文），让模型先调研、出计划、用 <code>exit_plan_mode</code> 提交审批，禁止实施。</li>
+    </ul>
+
+    <h3>11.7 工作流层：workflow / ralph</h3>
+    <ul>
+      <li><code>workflow-worker-thread</code>：在 worker 线程里跑多 agent 编排脚本（<code>workflow</code> 工具）；脚本只有协调能力，真正的活由子代理干。</li>
+      <li><code>tool-ralph</code>：Ralph 循环 —— 每轮全新 agent + 共享工作区做记忆，实现「新鲜视角迭代」。</li>
+    </ul>
+
+    <h3>11.8 命令与提醒：commands / repeat-tool-reminder / timeout-policy / spill</h3>
+    <ul>
+      <li><code>commands</code>：斜杠命令注册表（/goal、/compact、/model…）；<code>command-*</code> 各自实现。</li>
+      <li><code>repeat-tool-reminder</code>：连续重复调用工具时的提醒（阈值 3/5/8）。</li>
+      <li><code>timeout-policy</code>：工具调用超时策略。</li>
+      <li><code>spill-local</code> + <code>spill-policy</code>：超长输出的「溢出落盘」（<code>maxInlineBytes: 50000</code>，超出写文件、给路径）。</li>
+    </ul>
+
+    <h3>11.9 本章小结</h3>
+    <ul>
+      <li>服务按领域分群：模型 / 会话 / Agent / 子代理 / 目标 / 工作流 / 命令。</li>
+      <li>「注册表服务」常在 host 平面，「模型可见的工具」在 agent 平面。</li>
+      <li>提示词段、工具、命令、投影都是「可注册」的扩展点。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 11</div>
+    <ol>
+      <li>从 <code>--dump-config</code> 里找出 5 个你之前不知道的服务，读它们的包 README（<code>node_modules/@deepseek-ai/&lt;pkg&gt;/README.zh.md</code>）。</li>
+      <li>解释：为什么 <code>web-search-deepseek</code> 行配置了 <code>apiKeyEnv: DEEPSEEK_API_KEY</code>？它与凭证库是什么关系？</li>
+      <li>读 base 补丁里 <code>plan-mode</code> 的 section 全文，总结计划模式的 5 条铁律。</li>
+    </ol></div>
+  </section>
+
+<!-- ═══════════════ 第 12 章 ═══════════════ -->
+  <section class="chapter" id="ch12" data-num="12">
+    <h2><span class="cn">CH.12</span> 工具插件机制：defineTool 与工具注册表</h2>
+
+    <h3>12.1 工具在 DSH 里的地位</h3>
+    <p>工具（tool）是模型调用能力的唯一入口：pwsh、fs、web_search、todo_write、goal、subagent、workflow…… 都是工具。工具定义在 <code>@deepseek-ai/dsh-tools</code> 包里（<code>ctx.tools</code> 服务），一个工具 = 一份 <b>JSON Schema 参数声明</b> + 一个 <b>execute 执行函数</b> + 若干<b>展示回调</b>。</p>
+
+    <h3>12.2 defineTool 的完整签名</h3>
+    <pre class="code" data-lang="js"><code>import { defineTool } from '@deepseek-ai/dsh-tools'
+
+ctx.tools.register(defineTool({
+  name: 'hello',                 // 工具名(模型看到的名字)
+  description: '…',              // 描述(模型据此选择工具,尽量详尽)
+  parameters: {                  // ★ 隐式参数 schema:每个键是一个属性声明
+    who: { type: 'string', required: true, description: '…' },
+    times: { type: 'integer', description: '…' },
+  },
+  output: {                      // 输出契约
+    schema: { type: 'string' },  // 执行结果的 JSON Schema
+    render: (args, value) => [   // 把结果渲染成 UI 文本块
+      { type: 'text', text: String(value) },
+    ],
+    // presentationMeta: (args, value) => ({…})   // 可选:给 UI 的元数据
+  },
+  async execute(args, exec) {    // ★ 真正干活的地方
+    // args  = 模型传参(已按 schema 校验)
+    // exec  = { agent, callId, signal, … }  执行上下文
+    return 'hi ' + args.who
+  },
+  // 以下全部可选:
+  // finalizeContent(exec, result)   — 内容最终化钩子
+  // presentCall(args)               — 调用卡的展示
+  // presentResult(args, result)     — 结果卡的展示
+  // isConcurrencySafe(args)         — 是否可并发
+  // timeoutMs                       — 工具级超时
+}))
+</code></pre>
+
+    <h3>12.3 参数与输出 schema 的「隐式编译」</h3>
+    <p><code>defineTool</code> 内部把你写的「属性声明」编译成严格 JSON Schema：<code>parameters</code> 变成 object 根 schema，<code>output.schema</code> 原样校验。模型每次调用都会先过校验（<code>validateJsonSchemaValue</code>），非法参数抛 <code>ToolArgsError</code>（<code>invalid arguments: …</code>），而不是让 execute 收到脏数据。支持的类型：<code>string / number / integer / boolean / null / array / object / oneOf</code>，属性支持 <code>required / enum / const / description</code>。</p>
+    <div class="note info"><span class="note-title">📌 为什么输出也要 schema</span>
+    execute 的返回值同样按 <code>output.schema</code> 校验。这一方面保证 UI 渲染器拿到的数据形状稳定（replay 旧日志时也能软校验回退到通用渲染），另一方面让工具作者把「契约」写清楚。</div>
+
+    <h3>12.4 渲染与展示：presentCall / presentResult / render</h3>
+    <p>DSH 的 Web UI 不是「模型说什么就显示什么」，而是由工具定义驱动：</p>
+    <ul>
+      <li><code>presentCall(args)</code>：模型发起调用时，UI 画一张「调用卡」。pwsh 返回 <code>{card:'terminal', title: command, description}</code>；后台任务返回 generic 卡。</li>
+      <li><code>presentResult(args, result)</code>：结果卡。pwsh 把退出码解析成「exit code pill」，输出区单独渲染。</li>
+      <li><code>output.render(args, value)</code>：把结果值变成模型/日志可见的文本块序列 —— 这是「模型看到什么」的最后一公里。</li>
+    </ul>
+
+    <h3>12.5 工具注册表：register / restrict / 分层作用域</h3>
+    <ul>
+      <li><code>ctx.tools.register(definition)</code>：全局或调用方 agent 作用域注册；重名（同层）抛错；<code>run_code</code> 是保留名（Code Mode 的传输工具）。</li>
+      <li><code>ctx.tools.restrict({ allow?, deny? })</code>：为调用方 agent 作用域屏蔽全局工具（白/黑名单）；只能在有 agent 作用域的 ctx 上调用。</li>
+      <li>作用域分层：全局层 + 各 agent 层，scoped 工具遮蔽全局同名工具；每个会话/agent 看到的工具集 = 全局 − 限制 + 自身。</li>
+      <li><code>tools</code> 行有 <code>mode</code> 配置：<code>native | code | both</code>（<code>DSH_TOOLS_MODE</code> 环境变量临时开关）。code 模式只暴露 <code>run_code</code>，由代码运行时解释执行。</li>
+    </ul>
+
+    <h3>12.6 工具插件的最小完整形态（本教程第一个工具）</h3>
+    <pre class="code" data-lang="js"><code>// 文件名: lib/index.js —— 这就是一个完整可用的 DSH 工具插件
+import z from '@deepseek-ai/schemastery'
+import { defineTool } from '@deepseek-ai/dsh-tools'
+
+// ★ 这三个具名导出是 Cordis 加载器的约定
+export const name = 'tool-hello'               // 插件名(日志/诊断用)
+export const inject = ['tools', 'systemPrompt'] // 依赖:工具注册表 + 提示词段服务
+export const Config = z.object({                // 插件配置 schema(行 config 会被校验)
+  greeting: z.string().default('你好'),
+})
+
+export function apply(ctx, config) {
+  // 1. 往系统提示词里塞一段,让模型知道有这个工具
+  ctx.systemPrompt.section({
+    name: 'tool:hello',
+    order: 200,
+    text: '你可以使用 hello 工具向用户问好。',
+  })
+
+  // 2. 注册工具
+  ctx.tools.register(defineTool({
+    name: 'hello',
+    description: '返回一句问候语,问候对象是 who 参数指定的名字。',
+    parameters: {
+      who: { type: 'string', required: true, description: '问候对象的名字' },
+    },
+    output: {
+      schema: { type: 'string' },
+      render: (_args, value) => [{ type: 'text', text: value }],
+    },
+    async execute(args) {
+      return `${config.greeting}, ${args.who}!`
+    },
+    presentCall: (args) => ({
+      card: 'generic',
+      title: `hello ${args.who}`,
+      kind: 'execute',
+      content: [{ type: 'text', text: 'say hello' }],
+    }),
+  }))
+}
+</code></pre>
+    <p>这就是「自定义 DSH 插件」的全部骨架 —— 你会惊讶地发现它和官方 <code>dsh-tool-todo</code> / <code>dsh-tool-pwsh</code> 的结构完全一致（区别只在业务逻辑）。CH.14 会把「如何安装运行」补齐。</p>
+
+    <h3>12.7 本章小结</h3>
+    <ul>
+      <li>工具 = JSON Schema 参数 + execute + 展示回调；defineTool 负责编译与校验。</li>
+      <li>register/restrict/分层作用域构成工具可见性模型；UI 完全由工具定义驱动。</li>
+      <li>工具插件 = cordis 插件：name/inject/Config/apply 四个导出，apply 里注册工具。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 12</div>
+    <ol>
+      <li>读 <code>dsh-tools/lib/index.js</code> 的 <code>defineTool</code>（约 40 行），确认校验发生的时机。</li>
+      <li>读 <code>dsh-tool-todo/lib/index.js</code> 全文（195 行），列出它注册了哪些东西（工具、投影、提示词段）。</li>
+      <li>设计一个「计算器」工具的 parameters 与 output.schema，要求除法除零时报错。</li>
+    </ol></div>
+  </section>
+
+  <!-- ═══════════════ 第 13 章 ═══════════════ -->
+  <section class="chapter" id="ch13" data-num="13">
+    <h2><span class="cn">CH.13</span> 沙箱、权限与审批：安全模型</h2>
+
+    <h3>13.1 三层安全模型</h3>
+    <p>DSH 的权限模型可以概括为「<b>模式（mode）→ 沙箱（sandbox）→ 审批（approval）</b>」三件套。base 补丁里对应的行：</p>
+    <table>
+      <tr><th>行</th><th>职责</th></tr>
+      <tr><td><code>sandbox-policy</code></td><td>读 <code>DSH_PERMISSION_MODE</code>（默认 <code>workspace-write</code>）与 <code>process.cwd()</code>，决定当前进程的沙箱模式</td></tr>
+      <tr><td><code>sandbox</code>（dsh-sandbox-local）</td><td>文件沙箱实现：read-only / workspace-write / danger-full-access</td></tr>
+      <tr><td><code>bash-sandbox</code> / <code>pwsh-sandbox</code></td><td>平台对应的命令沙箱（Windows 用 pwsh-sandbox；bash-sandbox 在 win32 上 disabled）</td></tr>
+      <tr><td><code>approval</code>（dsh-user-approval）</td><td>审批通道：<code>danger-full-access</code> 模式自动 <code>never</code> 审批；否则 <code>ask</code></td></tr>
+      <tr><td><code>permission</code>（dsh-permission-presets）</td><td>预设三档：read-only / workspace-write / danger-full-access（各自映射 sandbox+approval）</td></tr>
+    </table>
+
+    <h3>13.2 三种模式的定义</h3>
+    <pre class="code" data-lang="yaml"><code># base 补丁里的 permission 行 —— 模式就是「预设的组合」
+- id: permission
+  name: '@deepseek-ai/dsh-permission-presets'
+  config:
+    presets:
+      read-only:
+        sandbox: read-only          # 只能读
+        approval: ask
+      workspace-write:              # ★ 默认
+        sandbox: workspace-write    # 只能写工作区
+        approval: ask               # 越界操作要问用户
+      danger-full-access:
+        sandbox: danger-full-access # 全放开
+        approval: never             # 不再问
+</code></pre>
+
+    <h3>13.3 工具调用时的权限流转（以 pwsh 为例）</h3>
+    <p>回到 <code>dsh-tool-pwsh/lib/index.js</code>（CH.15 会仿写），它的 execute 里权限逻辑是：</p>
+    <ol>
+      <li><code>ctx.shell.sandboxMode</code> 拿到当前会话的沙箱模式（无沙箱执行器则整个 escalation 参数都不展示）。</li>
+      <li>调用前解析「standing policy」：<code>ctx.get('sandboxPolicy').resolve({ session })</code>。</li>
+      <li>若模型请求了 <code>sandbox_permissions</code>（升权）：走 <code>approveEscalation()</code> —— 校验严格拓宽方向（不能从 read-only 直接跳 full）、经 <code>ctx.approval</code> 向用户弹审批、映射结果。</li>
+      <li>最终把 <code>{ mode, workspaceRoot, … }</code> 作为 <code>sandboxPolicy</code> 传给执行器；执行器在受限进程里跑命令，把 <code>denied</code> 标记带回来。</li>
+      <li>渲染时：被拒 → <code>[sandbox: file access denied under &lt;mode&gt; mode]</code> 标记 + 升权提示（<code>escalationHintMarker</code>）。</li>
+    </ol>
+    <div class="note warn"><span class="note-title">⚠️ 安全设计要点（源码里的明文规则）</span>
+    <ul>
+      <li>升权是「一次性重试」：先被拒，再带 <code>sandbox_permissions</code> + <code>justification</code> 重试同一条命令；<b>禁止</b>绕道聊天问权限、<b>禁止</b>预先投机升权。</li>
+      <li>Windows 沙箱下 read-only 模式跑 PowerShell ConstrainedLanguage；进程间捕获输出（named pipe）被禁 → 模型会看到 EPERM 边界提示。</li>
+      <li>升级请求的批准弹窗就是用户的「同意」—— 不需要额外确认。</li>
+    </ul></div>
+
+    <h3>13.4 你可以在配置里改什么</h3>
+    <pre class="code" data-lang="yaml"><code># 例子:让 web profile 直接全放开(仅限可信环境!)
+- id: sandbox-policy
+  config:
+    mode: danger-full-access
+    workspaceRoot: !!js process.cwd()
+# 或:只读模式
+- id: sandbox-policy
+  config:
+    mode: read-only
+</code></pre>
+    <div class="note warn"><span class="note-title">⚠️ 这不是安全边界</span>
+    DSH 的沙箱是「事故防线」而不是「安全墙」—— 它是给模型自己设的护栏，防止它乱写文件/乱跑命令。别把它当多租户隔离用。</div>
+
+    <h3>13.5 本章小结</h3>
+    <ul>
+      <li>模式 = 预设组合（sandbox + approval）；默认 workspace-write + ask。</li>
+      <li>工具执行前解析 standing policy；升权是一次性、带理由、经审批的重试。</li>
+      <li>被拒、超时、信号、退出码都渲染成模型可见的标记 —— 模型据此决策。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 13</div>
+    <ol>
+      <li>读 <code>dsh-tool-pwsh/lib/index.js</code> 的 <code>approvePwshEscalation</code>，说出它调用了哪些 ctx 服务。</li>
+      <li>执行一条会被沙箱拒绝的命令（如写工作区外文件），观察渲染标记与升权提示。</li>
+      <li>设计一个「只读工具」：它应该怎样声明自己不需要沙箱？（提示：看 <code>exec.agent</code> 与 sandboxMode 的关系）</li>
+    </ol></div>
+  </section>
+
+  <!-- ═══════════════ 第四部分 ═══════════════ -->
+  <div class="part" id="part4">
+    <h2>第四部分 · 自定义插件实战 —— 从零写出你的第一个 DSH 插件</h2>
+    <p>理论到位了。这一部分我们亲手写插件：从最小的 hello-world 服务插件，到带配置、带 UI 展示的完整工具插件，最后发布并安装到 profile 里。所有代码都可以直接复制使用。</p>
+  </div>
+
+  <!-- ═══════════════ 第 14 章 ═══════════════ -->
+  <section class="chapter" id="ch14" data-num="14">
+    <h2><span class="cn">CH.14</span> 第一个插件：hello-world（服务插件）</h2>
+
+    <h3>14.1 项目骨架</h3>
+    <p>DSH 插件就是一个标准的 Node ESM 包，唯一的约定是 <code>main</code> 导出 cordis 插件（<code>name / inject / Config / apply</code>）。最小项目：</p>
+    <pre class="code" data-lang="sh"><code>my-hello-plugin/
+├── package.json
+└── lib/
+    └── index.js
+</code></pre>
+    <pre class="code" data-lang="json"><code>{
+  "name": "@me/dsh-plugin-hello",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/schemastery": "^3.18.1"
+  }
+}
+</code></pre>
+
+    <h3>14.2 插件本体：提供「一个服务 + 一个事件监听」</h3>
+    <pre class="code" data-lang="js"><code>// lib/index.js —— 一个服务插件:提供 ctx.helloWorld 服务,并响应事件
+import z from '@deepseek-ai/schemastery'
+
+export const name = 'hello-world'
+// 不 inject 任何东西;服务插件通常要 provide 什么,但这里用 ctx.provide 即可
+export const Config = z.object({
+  prefix: z.string().default('DSH'),
+})
+
+export function apply(ctx, config) {
+  // 1) 提供服务 ctx.helloWorld(根 fiber 提供,随插件卸载自动移除)
+  ctx.provide('helloWorld', {
+    greet(name) {
+      return `[${config.prefix}] hello, ${name}!`
+    },
+  })
+
+  // 2) 监听框架事件:每次插件状态变化打印日志
+  ctx.on('internal/status', (fiber, oldState) => {
+    ctx.logger('hello').info('fiber %s: %s -> %s',
+      fiber.name, oldState, fiber.state)
+  })
+
+  // 3) 注册一个自己的事件并派发(演示事件总线)
+  ctx.on('hello/greet', (name) => {
+    ctx.logger('hello').info('greet %s', name)
+  })
+
+  // 4) 返回 disposer:插件卸载时执行(可选)
+  return () => {
+    ctx.logger('hello').info('hello-world unloaded')
+  }
+}
+</code></pre>
+
+    <h3>14.3 装进 profile 并启用</h3>
+    <pre class="code" data-lang="sh"><code># 1) 把本地插件装进 web profile(等价于在 profile 目录执行 pnpm add file:…)
+dsh plugin --profile web add file:D:/code/my-hello-plugin
+
+# 2) 在用户补丁层插入一行启用它
+#    $DSH_HOME/profiles/web/cordis.patch.yml:
+</code></pre>
+    <pre class="code" data-lang="yaml"><code>- insert:
+    - id: hello-world
+      name: '@me/dsh-plugin-hello'
+      config:
+        prefix: 我的DSH
+</code></pre>
+    <p>保存后 watcher 热重载，日志出现 <code>apply plugin hello-world</code>。此时在浏览器控制台（node 侧不行，见下）或另一个插件里 <code>ctx.get('helloWorld').greet('world')</code> 就能调用。验证方式：</p>
+    <pre class="code" data-lang="sh"><code># 用 dump 确认行已进最终配置
+dsh --profile web --dump-config | findstr hello-world
+</code></pre>
+    <div class="note tip"><span class="note-title">💡 本地开发的更优姿势</span>
+    频繁改代码时，与其 <code>dsh plugin add file:…</code>（会复制/链接），不如直接在 profile 目录用 <code>pnpm link</code> 或 workspace 依赖做符号链接；改完代码重启 dsh（或依赖包若是纯 host 插件，可观察 HMR 行为）。先跑通 file: 方式即可。</div>
+
+    <h3>14.4 本章小结</h3>
+    <ul>
+      <li>DSH 插件 = 导出 name/inject/Config/apply 的 ESM 包。</li>
+      <li><code>ctx.provide</code> 提供服务、<code>ctx.on</code> 监听事件、返回 disposer 做清理。</li>
+      <li>安装 = <code>dsh plugin add</code> + patch 层 <code>insert:</code> 一行。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 14</div>
+    <ol>
+      <li>按本章做一遍，确认 <code>--dump-config</code> 出现你的行、日志出现 apply。</li>
+      <li>给插件加一个 <code>ctx.accessor('helloWorldPrefix', { get: () => config.prefix })</code>，验证 ctx 上能直接读。</li>
+      <li>把 <code>inject: ['helloWorld']</code> 加到另一个测试插件上，验证依赖驱动激活。</li>
+    </ol></div>
+  </section>
+
+  <!-- ═══════════════ 第 15 章 ═══════════════ -->
+  <section class="chapter" id="ch15" data-num="15">
+    <h2><span class="cn">CH.15</span> 写一个完整的工具插件：天气查询</h2>
+
+    <h3>15.1 需求</h3>
+    <p>做一个 <code>weather</code> 工具：模型传入城市名，返回该城市的天气文本。为了不依赖外部 API，我们用「静态数据 + 可注入的数据源服务」演示真实 DSH 的耦合方式 —— 工具读取 <code>ctx.weatherSource</code> 服务（一个可替换的实现），这正是一个「服务为工具提供能力」的标准模式。</p>
+
+    <h3>15.2 项目结构</h3>
+    <pre class="code" data-lang="sh"><code>dsh-tool-weather/
+├── package.json
+└── lib/
+    └── index.js
+</code></pre>
+    <pre class="code" data-lang="json"><code>{
+  "name": "@me/dsh-tool-weather",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.6",
+    "@deepseek-ai/schemastery": "^3.18.1"
+  }
+}
+</code></pre>
+
+    <h3>15.3 插件本体</h3>
+    <pre class="code" data-lang="js"><code>// lib/index.js
+import z from '@deepseek-ai/schemastery'
+import { defineTool } from '@deepseek-ai/dsh-tools'
+
+export const name = 'tool-weather'
+// 依赖:工具注册表、提示词段、可选的天气数据源服务
+export const inject = ['tools', 'systemPrompt']
+export const Config = z.object({
+  defaultUnit: z.string().default('celsius'),
+  maxCitiesPerCall: z.number().min(1).max(10).default(3),
+})
+
+export function apply(ctx, config) {
+  // 提示词段:告诉模型这个工具的存在与边界
+  ctx.systemPrompt.section({
+    name: 'tool:weather',
+    order: 210,
+    text: 'weather 工具返回静态示例天气数据;数据源可通过 ctx.weatherSource 服务替换。',
+  })
+
+  // 若已有别的插件提供 weatherSource,用它的;否则用内置的静态源
+  const source = ctx.get('weatherSource') ?? {
+    async fetch(city) {
+      const table = {
+        北京: '晴, 24°C', 上海: '多云, 27°C', 深圳: '阵雨, 29°C',
+      }
+      return table[city] ?? `暂无 ${city} 的数据`
+    },
+  }
+
+  ctx.tools.register(defineTool({
+    name: 'weather',
+    description: '查询一个城市的天气。支持中文城市名;一次最多查询 ' +
+      config.maxCitiesPerCall + ' 个城市。',
+    parameters: {
+      cities: {
+        type: 'array',
+        required: true,
+        description: '要查询的城市列表',
+        items: { type: 'string' },
+      },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          reports: {
+            type: 'array',
+            required: true,
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                city: { type: 'string', required: true },
+                text: { type: 'string', required: true },
+              },
+            },
+          },
+        },
+      },
+      // 模型最终看到的文本
+      render: (_args, value) => [{
+        type: 'text',
+        text: value.reports.map(r => `${r.city}: ${r.text}`).join('\n'),
+      }],
+    },
+    async execute(args) {
+      if (args.cities.length > config.maxCitiesPerCall) {
+        throw new Error(`一次最多查询 ${config.maxCitiesPerCall} 个城市`)
+      }
+      const reports = []
+      for (const city of args.cities) {
+        reports.push({ city, text: await source.fetch(city) })
+      }
+      return { reports }
+    },
+    // UI:调用卡
+    presentCall: (args) => ({
+      card: 'generic',
+      title: `weather: ${args.cities.join(', ')}`,
+      kind: 'execute',
+      content: [{ type: 'text', text: '查询天气' }],
+    }),
+    // UI:结果卡
+    presentResult: (args, result) => ({
+      card: 'generic',
+      content: [{
+        type: 'text',
+        text: result.content[0]?.text ?? '',
+      }],
+    }),
+  }))
+}
+</code></pre>
+
+    <h3>15.4 安装与验证</h3>
+    <pre class="code" data-lang="sh"><code>dsh plugin --profile web add file:D:/code/dsh-tool-weather
+# patch 层:
+</code></pre>
+    <pre class="code" data-lang="yaml"><code>- insert:
+    - id: tool-weather
+      name: '@me/dsh-tool-weather'
+      config:
+        defaultUnit: celsius
+</code></pre>
+    <p>验证：新开会话问模型「北京和上海天气怎么样？」，模型应调用 <code>weather</code> 工具，UI 出现调用卡与结果卡；日志里 <code>apply plugin tool-weather</code> 确认加载。</p>
+
+    <h3>15.5 进阶：提供可替换的服务（解耦数据源）</h3>
+    <p>把数据源做成独立服务插件，weather 工具只负责消费 —— 这是 DSH 的惯用分层：</p>
+    <pre class="code" data-lang="js"><code>// 另一个插件 @me/dsh-weather-source
+export const name = 'weather-source'
+export function apply(ctx) {
+  ctx.provide('weatherSource', {
+    async fetch(city) {
+      // 这里可以真的调 API / 读文件 / 查数据库
+      const res = await fetch(`https://api.example.com/weather?city=${encodeURIComponent(city)}`)
+      return (await res.json()).text
+    },
+  })
+}
+</code></pre>
+    <pre class="code" data-lang="yaml"><code>- insert:
+    - id: weather-source
+      name: '@me/dsh-weather-source'
+    - id: tool-weather
+      name: '@me/dsh-tool-weather'
+      inject: [weatherSource]      # ★ 声明依赖:数据源没就绪,工具不激活
+</code></pre>
+    <p>注意：工具插件里 <code>ctx.get('weatherSource')</code> 是「有则用之」；而在 patch 行里写 <code>inject: [weatherSource]</code> 是「必须等它就绪」—— 两种语义按需选择（这就是 CH.5 说的 get 与 inject 的区别）。</p>
+
+    <h3>15.6 本章小结</h3>
+    <ul>
+      <li>完整工具插件 = 插件骨架 + defineTool（schema + execute + render/present*）。</li>
+      <li>「服务提供能力、工具消费能力」是 DSH 的解耦模式。</li>
+      <li>行级 inject 可以声明跨插件的硬依赖。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 15</div>
+    <ol>
+      <li>实现上述插件并在 web profile 里跑通一次真实调用。</li>
+      <li>给工具加 <code>isConcurrencySafe</code> 与 <code>timeoutMs</code>，观察行为差异。</li>
+      <li>把数据源换成「读本地 JSON 文件」（用 <code>ctx.fs</code> 或 node:fs + 沙箱感知），并处理失败情况。</li>
+    </ol></div>
+  </section>
+
+<!-- ═══════════════ 第 16 章 ═══════════════ -->
+  <section class="chapter" id="ch16" data-num="16">
+    <h2><span class="cn">CH.16</span> 配置 Schema 与 Schemastery 深入</h2>
+
+    <h3>16.1 为什么需要 Config schema</h3>
+    <p>插件的 <code>Config</code> 是一个 <b>Standard Schema</b> 校验器。加载插件时，<code>resolveConfig()</code> 用 <code>Config['~standard'].validate(config)</code> 校验行配置，失败抛 <code>ValidationError</code>（逐条列出 issues 与路径），fiber 进入 FAILED。好处：</p>
+    <ul>
+      <li>配置错误在<b>启动时</b>暴露，而不是运行到一半才崩。</li>
+      <li>schema 同时是 <b>Web Settings 页的自动表单</b>（元数据：default、description、role… 驱动 UI）。</li>
+      <li>schema 可以带 <code>merge</code>，决定 intercept 配置怎么合并（CH.6.4）。</li>
+    </ul>
+
+    <h3>16.2 Schemastery 快速参考</h3>
+    <p>DSH 使用 <code>@deepseek-ai/schemastery</code>（schemastery 3.x 的 fork，兼容 standard-schema）。常用构造器：</p>
+    <pre class="code" data-lang="js"><code>import z from '@deepseek-ai/schemastery'
+
+export const Config = z.object({
+  // 基础类型 + 默认值
+  name: z.string().default('unnamed'),
+  count: z.number().min(0).max(100).default(10),
+  enabled: z.boolean().default(true),
+  tags: z.array(z.string()).default([]),
+  // 必填
+  apiKey: z.string().required(),
+  // 枚举/常量
+  mode: z.union([z.const('fast'), z.const('safe')]).default('safe'),
+  // 字典/嵌套
+  providers: z.dict(z.object({ url: z.string() })).default({}),
+  // 转换(输入→输出)
+  timeout: z.transform(z.string(), (s) => Number(s)).default('5000'),
+  // 延迟递归
+  tree: z.lazy(() => z.object({ value: z.string(), child: z.union([z.any()]).optional() })),
+})
+</code></pre>
+    <table>
+      <tr><th>构造器</th><th>说明</th></tr>
+      <tr><td><code>z.string()/z.number()/z.boolean()</code></td><td>基础类型；链式 <code>.min/.max/.default/.required/.description()</code></td></tr>
+      <tr><td><code>z.object({…})</code></td><td>对象；键→schema</td></tr>
+      <tr><td><code>z.array(inner)</code> / <code>z.tuple([…])</code></td><td>数组/元组</td></tr>
+      <tr><td><code>z.dict(inner, keySchema?)</code></td><td>任意键映射</td></tr>
+      <tr><td><code>z.union([…])</code> / <code>z.intersect([…])</code></td><td>联合/交叉</td></tr>
+      <tr><td><code>z.const(v)</code></td><td>字面量</td></tr>
+      <tr><td><code>z.transform(inner, fn)</code></td><td>校验后转换（配置归一化）</td></tr>
+      <tr><td><code>z.lazy(fn)</code></td><td>递归 schema</td></tr>
+      <tr><td><code>z.any() / z.never()</code></td><td>任意值 / 永不合法</td></tr>
+      <tr><td><code>z.is(cls)</code> / <code>z.date()</code> / <code>z.regExp()</code></td><td>实例/日期/正则</td></tr>
+    </table>
+
+    <h3>16.3 Config 的 merge 与 intercept（进阶）</h3>
+    <p>如果插件的 Config 提供静态 <code>merge</code>，Service 的 <code>[resolveConfig]</code> 在合并 intercept 配置时会用它（否则浅 <code>Object.assign</code>）：</p>
+    <pre class="code" data-lang="js"><code>Config.merge = (base, ...rest) => {
+  // 例:数组要拼接而不是覆盖
+  return { ...base, ...Object.assign({}, ...rest), tags: [...(base.tags ?? []), ...rest.flatMap(r => r.tags ?? [])] }
+}
+</code></pre>
+
+    <h3>16.4 调试配置：ValidationError 长什么样</h3>
+    <pre class="code" data-lang="sh"><code># 给 tool-weather 传一个非法 config:
+#   config: { maxCitiesPerCall: 999 }
+# 启动/热重载时日志:
+invalid config:
+  - expected number &lt;= 10 (at maxCitiesPerCall)
+</code></pre>
+
+    <h3>16.5 本章小结</h3>
+    <ul>
+      <li>Config = standard-schema 校验器；启动时校验，失败进 FAILED。</li>
+      <li>schemastery 是声明式 schema 库，同时驱动校验与设置页 UI。</li>
+      <li>merge 定制 intercept 合并行为。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 16</div>
+    <ol>
+      <li>给 CH.15 的天气插件加一个 <code>units: z.union([z.const('celsius'), z.const('fahrenheit')])</code> 配置并在 execute 里使用。</li>
+      <li>故意写错 config，观察 ValidationError 的输出格式与 fiber 状态。</li>
+      <li>读 <code>schemastery/src/index.ts</code> 的 <code>Static</code> 接口，找出 5 个你还没用过的构造器。</li>
+    </ol></div>
+  </section>
+
+  <!-- ═══════════════ 第 17 章 ═══════════════ -->
+  <section class="chapter" id="ch17" data-num="17">
+    <h2><span class="cn">CH.17</span> 发布、安装与版本管理</h2>
+
+    <h3>17.1 插件包的发布形态</h3>
+    <p>DSH 插件就是普通 npm 包，两个可选「元数据」增强：</p>
+    <ul>
+      <li><b>普通插件</b>：导出 <code>name/inject/Config/apply</code>（或 default 导出插件对象）；用户用 <code>insert:</code> 一行挂载。绝大多数插件都是这种。</li>
+      <li><b>Bundle 组合包</b>：package.json 里声明 <code>"dsh": { "bundle": { "patch": "./cordis.patch.yml" } }</code>；整个包作为 profile 的 bundle 层被自动叠加（dsh-base/web-app/headless 都是这种）。适合「一整套功能」的打包分发。</li>
+    </ul>
+    <pre class="code" data-lang="json"><code>// 普通插件
+{ "name": "@me/dsh-tool-weather", "main": "lib/index.js", "type": "module", … }
+
+// Bundle 组合包
+{ "name": "@me/dsh-bundle-weather", "main": "lib/index.js", "type": "module",
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } }, … }
+</code></pre>
+
+    <h3>17.2 Bundle 里写什么（你的第一个组合包）</h3>
+    <pre class="code" data-lang="yaml"><code># @me/dsh-bundle-weather/cordis.patch.yml
+# 这个 bundle 挂到 profile 后自动插入下面的行
+- insert:
+    - id: weather-source
+      name: '@me/dsh-weather-source'
+    - id: tool-weather
+      name: '@me/dsh-tool-weather'
+      inject: [weatherSource]
+    - id: system-prompt
+      config:                      # 也可以覆盖已有行
+        persona: >-
+          You are a weather-aware assistant.
+</code></pre>
+    <p>使用：在 profile 的 <code>package.json</code> 的 <code>dsh.profile.bundles</code> 里追加 <code>"@me/dsh-bundle-weather"</code>，重启（bundle 变化不支持热重载）。</p>
+
+    <h3>17.3 发布到 npm 与安装</h3>
+    <pre class="code" data-lang="sh"><code># 发布(需要 npm 账号与包名权限)
+npm publish --access public
+
+# 用户安装
+dsh plugin --profile web add @me/dsh-tool-weather
+
+# 版本管理:pnpm 的语义化版本一切可用
+dsh plugin --profile web add @me/dsh-tool-weather@^0.2.0
+dsh plugin --profile web update @me/dsh-tool-weather
+</code></pre>
+
+    <h3>17.4 插件开发 checklist</h3>
+    <table>
+      <tr><th>项</th><th>要求</th></tr>
+      <tr><td>包类型</td><td><code>"type": "module"</code>（DSH 全 ESM）</td></tr>
+      <tr><td>导出</td><td><code>name / inject / Config / apply</code> 具名导出（或 default 插件对象）</td></tr>
+      <tr><td>Config</td><td>始终用 schemastery 写 schema（校验 + 设置页 UI）</td></tr>
+      <tr><td>依赖</td><td>声明你 import 的所有 <code>@deepseek-ai/*</code> 包（peer 或直接依赖）</td></tr>
+      <tr><td>清理</td><td>所有资源用 <code>ctx.effect</code> / <code>ctx.on</code> / <code>ctx.provide</code>（自动清理）；不要手动挂全局监听不清理</td></tr>
+      <tr><td>命名</td><td>插件名用 <code>tool-* / service-* / ui-*</code> 等前缀区分角色</td></tr>
+    </table>
+
+    <h3>17.5 本章小结</h3>
+    <ul>
+      <li>普通插件（行挂载）vs Bundle（自动叠加层）两种发布形态。</li>
+      <li>Bundle 靠 <code>dsh.bundle.patch</code> 声明；改 bundles 需重启。</li>
+      <li>开发 checklist：ESM、具名导出、schema、声明依赖、effect 清理。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 17</div>
+    <ol>
+      <li>把 CH.15 的天气工具改造成一个 Bundle 组合包，并加到 web profile 的 bundles 里验证。</li>
+      <li>（可选）发布到 npm 私有/公开仓库，再 <code>dsh plugin add</code> 安装回来。</li>
+      <li>给包补一个 <code>README.zh.md</code> 与 <code>LICENSE</code>，说明配置项。</li>
+    </ol></div>
+  </section>
+
+  <!-- ═══════════════ 第五部分 ═══════════════ -->
+  <div class="part" id="part5">
+    <h2>第五部分 · 掌控 DSH —— 深度定制与运维</h2>
+    <p>最后一部分把前面所有知识串起来：定制自己的 Profile、精通 patch 语言、理解会话与 Agent 的深层机制、数据与存储、以及排障与进阶路线。学完这一部分，你就是「掌控 DSH」的人了。</p>
+  </div>
+
+  <!-- ═══════════════ 第 18 章 ═══════════════ -->
+  <section class="chapter" id="ch18" data-num="18">
+    <h2><span class="cn">CH.18</span> 定制自己的 Profile 与 Bundle 组合</h2>
+
+    <h3>18.1 为什么需要自定义 Profile</h3>
+    <p>内置的 web/headless 是「开箱即用」的形态。当你想要「一个没有 Web、没有浏览器插件、只有命令行任务 + 自定义工具的极简形态」，或「一套内部团队专用的组合」，就应该建自己的 profile。</p>
+
+    <h3>18.2 创建一个自定义 Profile</h3>
+    <pre class="code" data-lang="sh"><code># 1) 创建目录与 package.json(web/headless 之外的 profile 必须手动初始化)
+mkdir $env:USERPROFILE\.dsh\profiles\cli
+# profiles\cli\package.json:
+</code></pre>
+    <pre class="code" data-lang="json"><code>{
+  "name": "dsh-profile-cli",
+  "private": true,
+  "dependencies": {},
+  "dsh": {
+    "profile": {
+      "bundles": ["@deepseek-ai/dsh-base"]
+    }
+  }
+}
+</code></pre>
+    <pre class="code" data-lang="sh"><code># 2) 用 dsh plugin 补全依赖(会创建 pnpm-workspace.yaml 并安装)
+dsh plugin --profile cli add @deepseek-ai/dsh-base
+
+# 3) 首次启动会生成 cordis.yml / cordis.patch.yml
+dsh --profile cli --dump-config    # 先看最终配置
+</code></pre>
+    <div class="note warn"><span class="note-title">⚠️ 没有 runner 的 profile 不会「做任何事」</span>
+    只有 base 的 profile 只是一个「加载了所有基础插件但没有表面」的空壳 —— 它没有 headless-runner 也没有 web-startup，所以 <code>dsh --profile cli</code> 会启动后挂着。你的 profile 至少要有一个「应用插件」：要么模仿 headless 加 runner，要么模仿 web 加 web 层。照抄 <code>dsh-headless/cordis.patch.yml</code> 是最快的起步。</div>
+
+    <h3>18.3 组合策略：层叠而不是分叉</h3>
+    <p>DSH 的设计鼓励「共享 base + 各自 surface」，而不是复制粘贴配置：</p>
+    <ul>
+      <li>所有 profile 共享 <code>dsh-base</code> —— 升级即全部受益。</li>
+      <li>你的定制放 <code>cordis.patch.yml</code>（profile 级）或 <code>$DSH_HOME/cordis.patch.yml</code>（机器级，所有 profile 生效）。</li>
+      <li>临时实验用 <code>--patch overlay.yml</code>，不动任何文件。</li>
+      <li>「一整块能力」打成 Bundle（CH.17.2），加一行 bundles 即可复用。</li>
+    </ul>
+
+    <h3>18.4 用 --patch 做部署差异</h3>
+    <pre class="code" data-lang="yaml"><code># deploy-extra.yml —— 部署时注入,不进仓库
+- id: web-runtime
+  config:
+    printUrl: false
+- id: session-query-sqlite
+  config:
+    path: 'D:/data/dsh/search.db'
+    openAt: first-search
+</code></pre>
+    <pre class="code" data-lang="sh"><code>dsh --profile web --patch deploy-extra.yml
+</code></pre>
+
+    <h3>18.5 本章小结</h3>
+    <ul>
+      <li>自定义 profile = 目录 + package.json 声明 bundles；表面层要自己配。</li>
+      <li>共享 base + surface 覆盖 + 用户层 + --patch 是最佳实践。</li>
+      <li>--patch 让部署差异不污染配置文件。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 18</div>
+    <ol>
+      <li>创建 cli profile（只挂 base），用 <code>--dump-default-config</code> 检查。</li>
+      <li>把 <code>dsh-headless/cordis.patch.yml</code> 抄成自己的 surface 补丁（改名 headless-startup/runner 的 id 与 name 对应的包，注意 <code>dsh-headless</code> 包本身在 profile 的 node_modules 里），启动一次 <code>dsh --profile cli "hello"</code>。</li>
+      <li>用 <code>--patch</code> 覆盖 web 的 <code>web-runtime.printUrl</code> 验证部署差异。</li>
+    </ol></div>
+  </section>
+
+  <!-- ═══════════════ 第 19 章 ═══════════════ -->
+  <section class="chapter" id="ch19" data-num="19">
+    <h2><span class="cn">CH.19</span> Patch 语言精通：组合、插值、热重载实战</h2>
+
+    <h3>19.1 patch 文件的结构与语义回顾</h3>
+    <pre class="code" data-lang="yaml"><code># patch 文件 = 一个 YAML 数组,元素只有两种:
+# ① 目标覆盖(必须有 id)
+- id: some-row
+  config: { … }        # 整体替换该行 config
+  disabled: true       # 禁用
+  name: 'other-pkg'    # 换插件(会触发 换插件 更新路径)
+  inject: [svc]        # 改依赖
+
+# ② 插入列表(可带 id 指定插入到哪个 group)
+- insert:
+    - id: new-row
+      name: 'pkg'
+      config: { … }
+    - id: nested
+      group: true
+      config:
+        - id: child-row
+          name: 'pkg2'
+</code></pre>
+
+    <h3>19.2 组合模式：按需组装一个「超级工具集」</h3>
+    <p>一个常见的需求：给 Web 的默认 agent 换一组工具。做法是写自己的 agent preset（CH.20 详讲），或直接覆盖 <code>tools</code> 行与相关行。这里演示更常用的「覆盖 + 插入」组合拳：</p>
+    <pre class="code" data-lang="yaml"><code># $DSH_HOME/profiles/web/cordis.patch.yml
+# 1) 调整现有行的行为
+- id: tool-result-pruner
+  config:
+    thresholdChars: 16384      # 让模型看更长的工具输出
+- id: repeat-tool-reminder
+  config:
+    thresholds: [4, 8]         # 改提醒节奏
+
+# 2) 插入自己的工具
+- insert:
+    - id: tool-weather
+      name: '@me/dsh-tool-weather'
+      inject: [weatherSource]
+    - id: weather-source
+      name: '@me/dsh-weather-source'
+
+# 3) 关闭不需要的
+- id: skill-badge
+  disabled: true
+</code></pre>
+    <p>保存即热重载 —— 这是 DSH 最爽的体验之一。</p>
+
+    <h3>19.3 !!js 插值的精确定位</h3>
+    <ul>
+      <li>求值时机：插件 fiber 激活前，<code>internal/config</code> 里由 Loader 对行配置递归插值（<code>interpolate</code>：递归替换 <code>{__jsExpr}</code> 节点）。</li>
+      <li>作用域：<code>with (ctx) { eval(expr) }</code> —— 表达式里可以直接写 <code>ctx.xxx</code>、<code>process</code>、以及 ctx 上的一切（<code>dshHomePath</code> 由 boot provide）。</li>
+      <li>时机陷阱：<code>ctx.webStartup</code> 只有在 <code>web-startup</code> 插件 provide 之后才存在 —— 所以依赖它的行必须写 <code>inject: [webStartup]</code>，否则表达式求值时服务还不存在（这正是 web-app 补丁里每行都带 inject 的原因）。</li>
+    </ul>
+    <pre class="code" data-lang="yaml"><code># 可用的表达式示例
+port: !!js ctx.webStartup.port ?? 3080          # 服务值 + 默认值
+mode: !!js process.env.DSH_PERMISSION_MODE ?? 'workspace-write'  # 环境变量
+disabled: !!js process.platform === 'win32'     # 平台判断
+root: !!js dshHomePath('sessions')              # home 路径助手
+</code></pre>
+    <div class="note warn"><span class="note-title">⚠️ 插值≠模板</span>
+    <code>!!js</code> 是执行 JS 表达式，不是字符串模板。别写 <code>"{{model}}"</code> 这类 —— 那是 system-prompt 的 persona 模板变量（由 system-prompt 插件自己渲染），不是 loader 的插值。</div>
+
+    <h3>19.4 热重载实战：改配置不停机</h3>
+    <ol>
+      <li>改 <code>cordis.patch.yml</code> 保存。</li>
+      <li>watcher 触发 → 重算行表 → Entry.update 逐行 diff。</li>
+      <li>只改 config 的行：fiber.update 原地热更（插件代码不重跑，<code>apply</code> 不重新执行 —— 只有 <code>fiber.update</code> 内部逻辑会跑）。</li>
+      <li>改 name/inject/group 的行：卸载旧 fiber + 导入新插件 + 启动新 fiber（apply 重跑）。</li>
+      <li>新增/删除行：对应 insert/移除。</li>
+    </ol>
+    <div class="note info"><span class="note-title">📌 常见误区</span>
+    很多人以为「热重载 = 改 config 后 apply 重跑」。实际上<b>纯 config 变化只触发 <code>fiber.update</code></b>（fiber.ts 的 <code>update()</code> 里 config 已被 <code>_resolveConfig</code> 处理过），插件代码体不会重新执行。想让代码响应配置变化，要么监听 <code>internal/update</code>，要么换插件路径（改 name）。</div>
+
+    <h3>19.5 本章小结</h3>
+    <ul>
+      <li>patch 只有两种元素：目标覆盖与插入；group 支持嵌套。</li>
+      <li>!!js 在 fiber 激活前求值，作用域是 ctx + process；依赖服务必须先 inject。</li>
+      <li>热重载分「原地热更 config」与「换插件重启」两种路径。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 19</div>
+    <ol>
+      <li>写一个 patch：插入一个带 <code>!!js process.env.MY_FLAG ?? 'off'</code> 的行，用 <code>--dump-config</code> 对比设置/不设置环境变量的输出。</li>
+      <li>热重载实验：改 config（观察 apply 是否重跑——加一行日志到 apply）、改 name（观察 apply 重跑）。</li>
+      <li>在 patch 里故意写错 group 结构，观察 dump 与日志的报错。</li>
+    </ol></div>
+  </section>
+
+<!-- ═══════════════ 第 20 章 ═══════════════ -->
+  <section class="chapter" id="ch20" data-num="20">
+    <h2><span class="cn">CH.20</span> 会话、Agent 与 Agent Presets 的深层机制</h2>
+
+    <h3>20.1 一次模型调用全链路（把 CH.10–13 串起来）</h3>
+    <p>你在 Web 输入框发一条消息，后台发生什么：</p>
+    <ol>
+      <li><b>会话创建</b>：客户端通过 <code>api-gateway</code>（host 平面的传输无关分发面）请求创建 session；session 携带 <code>header</code>（cwd、agent 引用）。</li>
+      <li><b>Agent 挂载</b>：Web 表面为会话挂一个 <b>agent preset</b>（默认 <code>standard</code>）—— preset 是一个组合：在会话作用域里激活一组行（工具插件、提示词段、委托后端）。这就是 base 里那些 <code>tool-*</code> 行在 Web 被禁用、改由 preset 挂载的原因。</li>
+      <li><b>工具集组装</b>：preset 里每个工具插件 <code>ctx.tools.register(...)</code>；<code>tools</code> 服务按作用域算出模型可见工具集（全局 − restrict + 会话层）。</li>
+      <li><b>提示词组装</b>：<code>systemPrompt</code> 把所有 <code>section</code> 按 <code>order</code> 排好（persona=0、harness:source=-99、plan-mode、tool:* 段…）。</li>
+      <li><b>请求发出</b>：agent-loop/会话驱动器调 <code>ctx.llm</code> → <code>llm-deepseek</code> 适配器 → 解析凭证 → 请求模型（流式）。</li>
+      <li><b>工具执行</b>：模型返回 tool_calls → 按工具名查注册表 → <code>defineTool</code> 校验参数 → execute（内部再走 shell/sandbox/jobs 等）→ render 回填。</li>
+      <li><b>持久化</b>：每条消息写入 session JSONL；checkpoint 策略在请求前落检查点；投影更新（todos/goals/stats）。</li>
+    </ol>
+    <p>这条链上每一步都是一个「行/服务/注册表」，你可以逐个替换 —— 这就是 DSH 的可定制性。</p>
+
+    <h3>20.2 Agent Preset 详解</h3>
+    <ul>
+      <li><b>preset 是什么</b>：一份「组合清单」—— 一个 preset 激活后，会话里就有哪些行。它是 Web 多会话架构下「每会话一套工具」的实现方式。</li>
+      <li><b>来源</b>：随部署的 <code>config/agent-presets/</code>（system trust，只读）+ <code>$DSH_HOME/.agent-presets</code>（用户/agent 自建，与 shell 同权）。</li>
+      <li><b>默认</b>：<code>agent-presets</code> 行配置 <code>default: standard</code>。</li>
+      <li><b>预设内容</b>：每个 preset 组合「哪些工具、哪些提示词段、哪个模型、什么委托后端」—— 从 base 补丁看，标准 preset 大概对应 base 里被 Web 禁用的那一组 <code>tool-*</code> 行（bash/pwsh/fs/goal/subagent/workflow/todo/web…）。</li>
+    </ul>
+    <pre class="code" data-lang="yaml"><code># 给自己建一个「纯文件阅读」preset(示例结构,字段以实际为准)
+# $DSH_HOME/.agent-presets/reader.yml  (或 .json)
+name: reader
+rows:
+  - id: tool-fs
+    name: '@deepseek-ai/dsh-tool-fs'
+  - id: tool-fs-search
+    name: '@deepseek-ai/dsh-tool-fs-search'
+  - id: tool-str-replace-editor
+    name: '@deepseek-ai/dsh-tool-str-replace-editor'
+# 然后在设置里把默认 preset 切到 reader,或让会话显式指定
+</code></pre>
+    <div class="note warn"><span class="note-title">⚠️ 上面的示例是「结构示意」</span>
+    agent-presets 包有自己精确的 schema，字段名请以 <code>@deepseek-ai/dsh-agent-presets</code> 的 README 与配置 schema 为准；Web 的 Settings → Agent preset 页面会列出当前部署支持的所有预设。先读 README 再动手。</div>
+
+    <h3>20.3 会话隔离与作用域（联系 CH.5 的 isolate）</h3>
+    <ul>
+      <li>每个会话的 agent 跑在隔离作用域里：它的 <code>session</code>、<code>agent</code> 服务、投影、目标都互不可见。</li>
+      <li>host 平面的服务（loader、jobs 注册表、subagents 注册表、goals 服务、token-meter、api-gateway）对所有会话共享 —— 这正是 web-app 补丁注释里反复论证的「host-plane ownership」。</li>
+      <li>子代理（subagent）是会话里的新「执行者」：spawn 全新、fork 继承；它们能 <code>send_message</code> 回父会话。</li>
+    </ul>
+
+    <h3>20.4 目标（Goal）与计划模式（Plan Mode）</h3>
+    <ul>
+      <li><b>Goal</b>：持久化「同会话长期目标」，跨自动续跑轮次存活；<code>goal-round-driver</code> 驱动轮次；UI 的 GoalBar 显示在输入区。</li>
+      <li><b>Plan Mode</b>：模型被一整段提示词约束（CH.11.6）—— 先调研、出决策完备的计划、用 <code>exit_plan_mode</code> 提交审批；审批后才是实施。你可以完全自定义这段提示词（覆盖 <code>plan-mode</code> 行的 <code>section</code>）。</li>
+    </ul>
+
+    <h3>20.5 本章小结</h3>
+    <ul>
+      <li>模型调用全链路 = 会话 → agent(preset) → 工具集/提示词 → llm → 工具执行 → 持久化。</li>
+      <li>Agent preset 是 Web 多会话的「每会话组合」机制；host/agent 平面分离是架构核心。</li>
+      <li>Goal 与 Plan Mode 是模型侧的两个长时机制，均可定制。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 20</div>
+    <ol>
+      <li>读 <code>@deepseek-ai/dsh-agent-presets</code> 的 README 与 schema，找到 default preset 的确切内容。</li>
+      <li>在 <code>$DSH_HOME/.agent-presets</code> 建一个自己的 preset（先复制 standard 再删减），在设置里切换并开新会话验证。</li>
+      <li>开两个会话分别给不同工具，验证隔离（一个会话看不到另一个的工具）。</li>
+    </ol></div>
+  </section>
+
+  <!-- ═══════════════ 第 21 章 ═══════════════ -->
+  <section class="chapter" id="ch21" data-num="21">
+    <h2><span class="cn">CH.21</span> 数据、存储与运维</h2>
+
+    <h3>21.1 数据都放在哪</h3>
+    <table>
+      <tr><th>数据</th><th>位置</th><th>格式/说明</th></tr>
+      <tr><td>会话日志</td><td><code>$DSH_HOME/sessions/</code></td><td>追加式 JSONL；不可变、可重放、可导出（<code>/export</code> 命令）</td></tr>
+      <tr><td>结构化存储</td><td><code>$DSH_HOME/storages/</code></td><td>JSON 文档（storage-domain 的 json 后端；由 <code>storage-json</code> 行配置 root）</td></tr>
+      <tr><td>用户设置</td><td><code>$DSH_HOME/settings.yaml</code></td><td>热重载文档；命名空间隔离（ui-theme、llm-deepseek…）</td></tr>
+      <tr><td>凭证</td><td><code>$DSH_HOME/.credentials.yaml</code></td><td>托管凭证；不注入进程环境；删除文件即清除</td></tr>
+      <tr><td>图片附件</td><td>content-addressed 引用</td><td>正文引用 + 共享后端解析字节（attachment-local）</td></tr>
+      <tr><td>溢出文件</td><td>spill 路径</td><td>超长输出落盘（<code>maxInlineBytes</code> 之外的部分）</td></tr>
+    </table>
+
+    <h3>21.2 会话查询与全文检索</h3>
+    <ul>
+      <li><code>session-query-sqlite</code> 默认 <code>openAt: never</code>（Web 只按标题/工作区名匹配）；要全文检索就覆盖 <code>openAt: first-search</code> 并给一个持久 <code>path</code>（如 <code>!!js dshHomePath('sessions') + '/index.db'</code> 之类，以包 README 为准）。</li>
+      <li>Node 22 启动保持安静是默认 <code>never</code> 的原因之一（惰性 import node:sqlite）。</li>
+    </ul>
+
+    <h3>21.3 日志与排障</h3>
+    <ul>
+      <li>桌面启动器把 stdout/stderr 写到 <code>dsh-desktop/logs/dsh-web.out.log / dsh-web.err.log</code>；launch.log 记录启动事件。</li>
+      <li>框架事件（<code>internal/dispatch</code> 等）可用于深度诊断；<code>ctx.logger</code> 的命名空间可过滤。</li>
+      <li>「行没加载」三连问：<code>--dump-config</code> 里行在吗？依赖服务在吗（inject 阻塞）？Config 校验过了吗（ValidationError）？</li>
+    </ul>
+    <pre class="code" data-lang="sh"><code># 常用诊断
+dsh --profile web --dump-config | findstr tool-weather   # 行在不在
+dsh --profile web --dump-default-config                  # 是不是用户层弄丢的
+# 看日志尾部
+Get-Content dsh-desktop\logs\dsh-web.err.log -Tail 50
+</code></pre>
+
+    <h3>21.4 环境变量速查（运维级）</h3>
+    <table>
+      <tr><th>变量</th><th>作用</th></tr>
+      <tr><td><code>DSH_HOME</code></td><td>用户数据目录（默认 <code>~/.dsh</code>）</td></tr>
+      <tr><td><code>DSH_PERMISSION_MODE</code></td><td>沙箱模式：read-only / workspace-write / danger-full-access</td></tr>
+      <tr><td><code>DSH_TOOLS_MODE</code></td><td>工具呈现模式：native / code / both（临时开关）</td></tr>
+      <tr><td><code>DSH_TELEMETRY_MODE</code> / <code>DSH_TELEMETRY_DISABLED</code> / <code>DSH_TELEMETRY_OTLP_URL</code></td><td>遥测开关与端点（默认 DISABLED；DISABLED 非空即关闭）</td></tr>
+      <tr><td><code>DEEPSEEK_API_KEY</code></td><td>官方适配器的凭证来源之一（web-search-deepseek 也用它）</td></tr>
+      <tr><td><code>DSH_WEB_URL</code> / <code>DSH_WEB_MODE</code></td><td>受管 shell 环境变量（模型可见）</td></tr>
+    </table>
+
+    <h3>21.5 备份与迁移</h3>
+    <ul>
+      <li>备份 <code>$DSH_HOME</code> 即备份一切（profiles 可重建，但 settings/credentials/sessions/storages 是数据）。</li>
+      <li>迁移到新机器：装 Node/pnpm → 安装 dsh → 拷贝 <code>$DSH_HOME</code> → <code>dsh plugin --profile web install</code> 重装依赖（或直接拷 profiles/node_modules）。</li>
+    </ul>
+
+    <h3>21.6 本章小结</h3>
+    <ul>
+      <li>数据分层：sessions(JSONL)/storages(JSON)/settings(热重载)/credentials(托管)。</li>
+      <li>排障路径：dump → 日志 → 依赖 → schema；环境变量是运维开关。</li>
+    </ul>
+    <div class="exercise"><div class="ex-title">✏️ 动手练习 21</div>
+    <ol>
+      <li>打开一个会话 JSONL 文件，找出消息、工具调用、投影事件的记录格式。</li>
+      <li>把 <code>session-query-sqlite</code> 打开全文检索，做一次搜索再还原。</li>
+      <li>制造一个故意失败的插件（Config 校验不过），完整走一遍排障流程。</li>
+    </ol></div>
+  </section>
+
+  <!-- ═══════════════ 第 22 章 ═══════════════ -->
+  <section class="chapter" id="ch22" data-num="22">
+    <h2><span class="cn">CH.22</span> FAQ、常见排障与进阶路线</h2>
+
+    <h3>22.1 高频问题（FAQ）</h3>
+    <table>
+      <tr><th>问题</th><th>答案</th></tr>
+      <tr><td>改配置后没生效？</td><td>检查是否改对了层：bundle 层的行要用 id 覆盖；确认保存触发 watcher（日志有 reload）；纯 config 变化不会重跑 apply；改 name/inject 才会换插件</td></tr>
+      <tr><td>行一直 PENDING？</td><td>inject 的服务没就绪。看 <code>internal/status</code> 日志与依赖链；或服务提供了但有 <code>check</code> 谓词没通过（如 Loader 的 await:true）</td></tr>
+      <tr><td>invalid config / ValidationError？</td><td>对照插件的 Config schema 修配置；<code>--dump-config</code> 看最终值；用 <code>dsh plugin why</code> 查版本</td></tr>
+      <tr><td>工具不在模型可见列表？</td><td>插件行加载了吗（日志 apply）？register 了吗？有没有被 <code>restrict</code> 屏蔽？tools mode 是 code 吗（只剩 run_code）？preset 挂了对吗？</td></tr>
+      <tr><td>如何完全离线运行？</td><td>DSH 本身是本地 Node 应用；只有模型请求与可选的遥测/搜索走网络。模型走本地端点（llm-pi-ai 配自建 provider）即可</td></tr>
+      <tr><td>想给插件加设置页 UI？</td><td>Config schema 的元数据（description/role/default/badges…）会被 <code>ui-settings-plugins</code> 渲染成表单；写清楚 schema 就有 UI</td></tr>
+      <tr><td>可以同时跑多个 profile 吗？</td><td>可以，各自进程独立（不同端口/不同任务）；共享 <code>$DSH_HOME</code> 的 settings 与家目录补丁层</td></tr>
+    </table>
+
+    <h3>22.2 进阶路线（学完本教程之后）</h3>
+    <ol>
+      <li><b>精读官方工具插件</b>：<code>dsh-tool-pwsh</code>（后台任务+沙箱+escalation）、<code>dsh-tool-subagent</code>（委托+continuable）、<code>dsh-tool-workflow</code>（多 agent 编排）—— 这三个涵盖 DSH 工具的全部复杂模式。</li>
+      <li><b>精读 session 与投影</b>：<code>dsh-session</code>、<code>dsh-session-projection</code>、<code>dsh-tool-todo</code> 的投影注册 —— 学会「事件流 → 可查询视图」范式。</li>
+      <li><b>读浏览器端</b>：<code>dsh-client-runtime</code>、<code>dsh-client-ui-*</code> —— 理解双面插件与 <code>__DSH_BOOT__</code> 模块表；尝试写一个 <code>ui-*</code> 浏览器插件。</li>
+      <li><b>写 Bundle 组合包</b>：把多个插件打包成一个可分发 surface（模仿 dsh-headless 的 35 行补丁）。</li>
+      <li><b>给 DSH 提 PR</b>：仓库 <code>github.com/deepseek-ai/deepseek-harness</code>；从修一个工具的 description 或补一个测试开始。</li>
+    </ol>
+
+    <h3>22.3 学习检查清单（你「掌控 DSH」了吗）</h3>
+    <ul>
+      <li>□ 能不看文档说清 <code>dsh web</code> 从进程启动到浏览器可用经过了哪几步</li>
+      <li>□ 能解释 <code>ctx.plugin()</code> 返回什么、fiber 六种状态、epoch 重载机制</li>
+      <li>□ 能说出五种事件派发模式与 internal/* 钩子表</li>
+      <li>□ 能徒手写一个带 Config schema 与 UI 展示的工具插件并热重载安装</li>
+      <li>□ 能设计一个自定义 profile（bundle 组合 + 用户层 + --patch）</li>
+      <li>□ 遇到「行不加载」能在 5 分钟内定位（dump→日志→依赖→schema）</li>
+    </ul>
+
+    <h3>22.4 结语</h3>
+    <p>DSH 的全部优雅之处在于：<b>它把「配置、插件、服务、工具」统一成了同一种东西</b> —— 都是 Cordis 里的行与 fiber。理解了这个内核，你就同时理解了它的配置系统、插件系统、Web 表面和自定义能力。剩下的，就是多读源码、多写插件。祝你把 DSH 变成真正属于你的智能体平台。</p>
+  </section>
+
+  <!-- ═══════════════ 附录 ═══════════════ -->
+  <div class="part" id="appendix">
+    <h2>附录</h2>
+    <p>术语表、命令速查与源码阅读地图，随时回查。</p>
+  </div>
+
+  <!-- ═══════════════ 附录 A ═══════════════ -->
+  <section class="chapter" id="app-a" data-num="A">
+    <h2><span class="cn">附录 A</span> 术语表</h2>
+    <table>
+      <tr><th>术语</th><th>解释</th></tr>
+      <tr><td><b>DSH / Harness</b></td><td>DeepSeek Harness：DSH 的完整名称，AI 编程智能体运行框架</td></tr>
+      <tr><td><b>Profile</b></td><td>一种运行形态：一个目录 + package.json(bundles 声明) + 补丁层</td></tr>
+      <tr><td><b>Bundle</b></td><td>带 cordis.patch.yml 的插件组合包，作为补丁层整体叠加</td></tr>
+      <tr><td><b>Patch</b></td><td>补丁列表：按 id 覆盖/插入行的 YAML 数组</td></tr>
+      <tr><td><b>Row / Entry</b></td><td>一行配置（id+name+config…），对应一个待加载插件</td></tr>
+      <tr><td><b>Context (ctx)</b></td><td>Cordis 的作用域对象（Proxy）；服务、插件、事件都挂在它上面</td></tr>
+      <tr><td><b>Service</b></td><td>注册在 ctx 上的具名能力（llm、session、tools…）</td></tr>
+      <tr><td><b>Plugin</b></td><td>函数/类/对象形态的插件入口（name/inject/Config/apply）</td></tr>
+      <tr><td><b>Fiber</b></td><td>一次插件加载的运行实例；状态机 + effect 清理</td></tr>
+      <tr><td><b>Effect</b></td><td><code>ctx.effect()</code>：声明资源清理，fiber 卸载时逆序执行</td></tr>
+      <tr><td><b>Inject</b></td><td>依赖声明；服务就绪后插件才激活</td></tr>
+      <tr><td><b>Intercept</b></td><td>给某服务注入「每插件配置」片段（子作用域定制）</td></tr>
+      <tr><td><b>Isolate</b></td><td>服务作用域隔离（多会话互不可见的关键）</td></tr>
+      <tr><td><b>Loader</b></td><td>插件加载器服务：Entry 树、!!js 插值、持久化、热重载</td></tr>
+      <tr><td><b>Entry Tree</b></td><td>配置行的树形组织（group 嵌套）</td></tr>
+      <tr><td><b>!!js</b></td><td>YAML 里的 JS 表达式标签，fiber 激活前求值</td></tr>
+      <tr><td><b>Agent</b></td><td>会话的模型执行者；一个 preset 组合出一套能力</td></tr>
+      <tr><td><b>Agent Preset</b></td><td>每会话挂载的「工具+提示词+委托」组合</td></tr>
+      <tr><td><b>Host 平面</b></td><td>进程级共享服务层（loader、jobs、subagents 注册表…）</td></tr>
+      <tr><td><b>Sandbox</b></td><td>文件/命令沙箱（read-only / workspace-write / danger-full-access）</td></tr>
+      <tr><td><b>Approval</b></td><td>审批通道（ask / never）；升权的一次性用户确认</td></tr>
+      <tr><td><b>Projection</b></td><td>从会话事件流派生的可查询视图（todos、goals、stats…）</td></tr>
+      <tr><td><b>Spill</b></td><td>超长输出的溢出落盘机制</td></tr>
+      <tr><td><b>Schemastery</b></td><td>DSH 使用的配置 schema 库（standard-schema 兼容）</td></tr>
+    </table>
+  </section>
+
+  <!-- ═══════════════ 附录 B ═══════════════ -->
+  <section class="chapter" id="app-b" data-num="B">
+    <h2><span class="cn">附录 B</span> 命令速查</h2>
+    <pre class="code" data-lang="sh"><code># ── 启动 ──
+dsh web                                  # 启动 Web GUI(--profile web 的别名)
+dsh --profile web --port 8080            # 换端口(应用参数)
+dsh --profile headless "run the tests"   # 一次性任务
+dsh --profile &lt;name&gt; &lt;args&gt;             # 自定义 profile
+
+# ── 配置 ──
+dsh --profile web --dump-config            # 最终配置树(含用户层)
+dsh --profile web --dump-default-config    # 只有 bundle 层
+dsh --profile web --patch extra.yml        # 临时覆盖层
+
+# ── 插件管理(透传 pnpm) ──
+dsh plugin --profile web add &lt;pkg&gt;
+dsh plugin --profile web add file:D:/code/foo
+dsh plugin --profile web remove &lt;pkg&gt;
+dsh plugin --profile web why &lt;pkg&gt;
+dsh plugin --profile web update
+
+# ── 帮助 ──
+dsh --help                    # 启动器帮助
+dsh --profile web --help      # web 应用帮助
+
+# ── 运维 ──
+# 日志:dsh-desktop/logs/ (dsh-web.out.log / dsh-web.err.log / launch.log)
+# 数据:$env:USERPROFILE\.dsh\ (sessions/ storages/ settings.yaml .credentials.yaml)
+</code></pre>
+  </section>
+
+  <!-- ═══════════════ 附录 C ═══════════════ -->
+  <section class="chapter" id="app-c" data-num="C">
+    <h2><span class="cn">附录 C</span> 源码阅读地图</h2>
+    <p>按「先看谁」的顺序列出 DSH 源码中的必读文件（本机路径 <code>node_modules\@deepseek-ai\</code> 下）：</p>
+    <table>
+      <tr><th>顺序</th><th>文件</th><th>为什么读它</th></tr>
+      <tr><td>1</td><td><code>dsh-web-app/cordis.patch.yml</code></td><td>424 行注释 = 整个 Web 架构的说明书</td></tr>
+      <tr><td>2</td><td><code>dsh-base/cordis.patch.yml</code></td><td>451 行 = 所有基础行与其设计理由</td></tr>
+      <tr><td>3</td><td><code>cordis/src/context.ts</code></td><td>Proxy 与根上下文的诞生</td></tr>
+      <tr><td>4</td><td><code>cordis/src/reflect.ts</code></td><td>服务解析器（get/set/provide/mixin）</td></tr>
+      <tr><td>5</td><td><code>cordis/src/registry.ts</code></td><td>插件注册表与 Plugin 类型</td></tr>
+      <tr><td>6</td><td><code>cordis/src/fiber.ts</code></td><td>生命周期状态机与 effect（最值得精读）</td></tr>
+      <tr><td>7</td><td><code>cordis/src/events.ts</code></td><td>五种派发模式与 internal/* 钩子表</td></tr>
+      <tr><td>8</td><td><code>cordis/src/service.ts</code></td><td>Service 基类（115 行）</td></tr>
+      <tr><td>9</td><td><code>cordis-plugin-loader/src/index.ts</code></td><td>Loader 如何用 internal 事件接管内核</td></tr>
+      <tr><td>10</td><td><code>cordis-plugin-loader/src/config/entry.ts</code></td><td>Entry.update 三种更新路径</td></tr>
+      <tr><td>11</td><td><code>dsh-app-boot/lib/index.js</code></td><td>boot/composeEntries/applyEntryPatches</td></tr>
+      <tr><td>12</td><td><code>dsh-tool-pwsh/lib/index.js</code></td><td>最完整的工具插件范本（452 行）</td></tr>
+      <tr><td>13</td><td><code>dsh-tool-todo/lib/index.js</code></td><td>工具+投影的最小范例（195 行）</td></tr>
+      <tr><td>14</td><td><code>dsh-web-app/lib/startup.js</code></td><td>应用参数→服务的最小范例（50 行）</td></tr>
+      <tr><td>15</td><td><code>dsh/lib/bin.js</code> + <code>profile-boot-*.js</code></td><td>CLI 解析与 profile 启动全流程</td></tr>
+    </table>
+    <p>读完这 15 个文件，你就是 DSH 的「源码级用户」了。</p>
+  </section>
+
+  <footer>
+    <p>本教程基于你机器上安装的 <code>@deepseek-ai/dsh@0.1.0-rc.6</code> 及配套包的源码编写，所有路径与行为均可对照验证。<br>
+    学习进度保存在浏览器本地（localStorage）。祝学习愉快！</p>
+  </footer>
+
+<script>
+(() => {
+  'use strict';
+  const $  = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  const store = {
+    get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  };
+
+  /* ── 主题 ─────────────────────────────── */
+  const themeBtn = $('#themeBtn');
+  const saved = store.get('dsh-tut-theme', 'dark');
+  document.documentElement.dataset.theme = saved;
+  themeBtn.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+    document.documentElement.dataset.theme = next;
+    store.set('dsh-tut-theme', next);
+  });
+
+  /* ── 代码高亮 ─────────────────────────── */
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  function hlJs(esc) {
+    const re = /(\/\*[\s\S]*?\*\/|\/\/[^\n]*)|('(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`)|(\b(?:const|let|var|function|return|if|else|for|while|do|class|extends|new|import|from|export|default|async|await|yield|this|typeof|instanceof|in|of|throw|try|catch|finally|switch|case|break|continue|delete|void|null|undefined|true|false|static|get|set|super)\b)|(\b\d+(?:\.\d+)?\b)/g;
+    return esc.replace(re, (m, c, s, k, n) =>
+      c ? '<span class="tk-c">' + c + '</span>'
+      : s ? '<span class="tk-s">' + s + '</span>'
+      : k ? '<span class="tk-k">' + k + '</span>'
+      : n ? '<span class="tk-n">' + n + '</span>' : m);
+  }
+
+  function hlYaml(esc) {
+    return esc.split('\n').map((line) => {
+      let out = line.replace(/^(\s*(?:-\s+)?)([A-Za-z_][\w.-]*)(\s*:)/, '$1<span class="tk-y">$2</span>$3');
+      out = out.replace(/(!!js\b)/g, '<span class="tk-t">$1</span>');
+      out = out.replace(/(#[^\n]*)$/, '<span class="tk-c">$1</span>');
+      out = out.replace(/('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")/g, '<span class="tk-s">$1</span>');
+      out = out.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tk-n">$1</span>');
+      return out;
+    }).join('\n');
+  }
+
+  function hlSh(esc) {
+    const re = /(#[^\n]*)|('(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*")|(\$\{?[A-Za-z_][\w]*\}?)|(--?[A-Za-z][\w-]*)|(\b\d+(?:\.\d+)?\b)/g;
+    return esc.replace(re, (m, c, s, v, f, n) =>
+      c ? '<span class="tk-c">' + c + '</span>'
+      : s ? '<span class="tk-s">' + s + '</span>'
+      : v ? '<span class="tk-n">' + v + '</span>'
+      : f ? '<span class="tk-y">' + f + '</span>'
+      : n ? '<span class="tk-n">' + n + '</span>' : m);
+  }
+
+  function hlJson(esc) {
+    const re = /("(?:[^"\\]|\\.)*")(\s*:)?|(\b(?:true|false|null)\b)|(\b\d+(?:\.\d+)?\b)/g;
+    return esc.replace(re, (m, s, colon, b, n) =>
+      s ? (colon ? '<span class="tk-y">' + s + '</span>' + colon : '<span class="tk-s">' + s + '</span>')
+      : b ? '<span class="tk-k">' + b + '</span>'
+      : n ? '<span class="tk-n">' + n + '</span>' : m);
+  }
+
+  $$('pre.code').forEach((pre) => {
+    const code = pre.querySelector('code');
+    if (!code) return;
+    const lang = pre.dataset.lang || 'text';
+    const raw = code.textContent;
+    let html;
+    if (lang === 'js') html = hlJs(esc(raw));
+    else if (lang === 'yaml') html = hlYaml(esc(raw));
+    else if (lang === 'sh' || lang === 'bash') html = hlSh(esc(raw));
+    else if (lang === 'json') html = hlJson(esc(raw));
+    else html = esc(raw);
+    code.innerHTML = html;
+    const tag = document.createElement('span');
+    tag.className = 'langtag';
+    tag.textContent = lang;
+    pre.prepend(tag);
+  });
+
+  /* ── 目录生成 ─────────────────────────── */
+  const toc = $('#toc');
+  const chapters = $$('section.chapter');
+  const done = new Set(store.get('dsh-tut-progress', []));
+  const groupItems = new Map(); // groupEl -> [itemEl...]
+
+  // 给 h3 补 id,便于子目录锚点
+  chapters.forEach((ch, ci) => {
+    $$('h3', ch).forEach((h3, hi) => { if (!h3.id) h3.id = `ch${ci}-h${hi}`; });
+  });
+
+  const partTitle = (p) => ($('h2', p)?.textContent || '').trim();
+  const chapterTitle = (ch) => ($('h2', ch)?.textContent || '').trim().replace(/^\s*CH\.[\w]+\s*/, '');
+  const chapterNum = (ch) => ($('.cn', ch)?.textContent || '').trim();
+
+  // 按文档顺序交错渲染「分组标题 + 章节条目」
+  let currentGroup = null;
+  const allNodes = document.querySelectorAll('div.part, section.chapter');
+  allNodes.forEach((node) => {
+    if (node.classList.contains('part')) {
+      currentGroup = document.createElement('div');
+      currentGroup.className = 'toc-group';
+      currentGroup.textContent = partTitle(node);
+      toc.appendChild(currentGroup);
+      groupItems.set(currentGroup, []);
+    } else {
+      const ch = node;
+      const id = ch.id;
+      const num = chapterNum(ch);
+      const title = chapterTitle(ch);
+      const item = document.createElement('div');
+      item.className = 'toc-item lv2' + (done.has(id) ? ' done' : '');
+      item.dataset.search = (num + ' ' + title).toLowerCase();
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = done.has(id);
+      cb.title = '标记本章完成';
+      cb.addEventListener('change', () => {
+        if (cb.checked) { done.add(id); item.classList.add('done'); toast('已标记「' + title + '」完成 ✓'); }
+        else { done.delete(id); item.classList.remove('done'); }
+        store.set('dsh-tut-progress', [...done]);
+        updateProgress();
+      });
+      const a = document.createElement('a');
+      a.href = '#' + id;
+      a.textContent = title;
+      const numEl = document.createElement('span');
+      numEl.className = 'num';
+      numEl.textContent = num;
+      item.append(numEl, cb, a);
+      toc.appendChild(item);
+      (groupItems.get(currentGroup) || []).push(item);
+      // h3 子条目
+      $$('h3', ch).forEach((h3) => {
+        const sub = document.createElement('div');
+        sub.className = 'toc-item lv3';
+        sub.dataset.search = h3.textContent.toLowerCase();
+        const sa = document.createElement('a');
+        sa.href = '#' + h3.id;
+        sa.textContent = h3.textContent.trim();
+        sub.appendChild(sa);
+        toc.appendChild(sub);
+        (groupItems.get(currentGroup) || []).push(sub);
+      });
+    }
+  });
+
+  /* ── 进度条 ───────────────────────────── */
+  const fill = $('#progressFill');
+  const txt = $('#progressText');
+  function updateProgress() {
+    const total = chapters.length;
+    const n = done.size;
+    fill.style.width = (total ? (n / total) * 100 : 0) + '%';
+    txt.textContent = n + ' / ' + total + ' 章';
+  }
+  updateProgress();
+
+  /* ── 搜索 ─────────────────────────────── */
+  const search = $('#tocSearch');
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    $$('.toc-item').forEach((it) => {
+      it.classList.toggle('hidden', !!q && !it.dataset.search.includes(q));
+    });
+    groupItems.forEach((items, group) => {
+      const visible = items.some((it) => !it.classList.contains('hidden'));
+      group.style.display = visible ? '' : 'none';
+    });
+  });
+
+  /* ── 章节导航 ─────────────────────────── */
+  chapters.forEach((ch, i) => {
+    const prev = chapters[i - 1];
+    const next = chapters[i + 1];
+    const nav = document.createElement('div');
+    nav.className = 'chapter-nav';
+    const prevBtn = prev
+      ? `<button class="prev" data-goto="${prev.id}"><b>← ${chapterTitle(prev)}</b>上一章</button>`
+      : `<button class="prev" disabled><b>—</b>已是第一章</button>`;
+    const nextBtn = next
+      ? `<button class="next" data-goto="${next.id}"><b>${chapterTitle(next)} →</b>下一章</button>`
+      : `<button class="next" disabled><b>—</b>已是最后一章</button>`;
+    nav.innerHTML = prevBtn + nextBtn;
+    ch.appendChild(nav);
+  });
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.chapter-nav button[data-goto]');
+    if (btn) {
+      e.preventDefault();
+      const target = document.getElementById(btn.dataset.goto);
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+
+  /* ── 键盘导航 ─────────────────────────── */
+  function currentChapterIndex() {
+    const mid = window.scrollY + window.innerHeight * 0.35;
+    let idx = 0;
+    chapters.forEach((ch, i) => { if (ch.offsetTop <= mid) idx = i; });
+    return idx;
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+      const n = chapters[currentChapterIndex() + 1];
+      if (n) n.scrollIntoView({ behavior: 'smooth' });
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      const p = chapters[currentChapterIndex() - 1];
+      if (p) p.scrollIntoView({ behavior: 'smooth' });
+    } else if (e.key === 'Escape') {
+      $('#sidebar').classList.remove('open');
+    }
+  });
+
+  /* ── 移动端侧栏 ───────────────────────── */
+  const sidebar = $('#sidebar');
+  $('#menuBtn').addEventListener('click', () => sidebar.classList.toggle('open'));
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 1024 && sidebar.classList.contains('open') &&
+        !sidebar.contains(e.target) && !e.target.closest('#menuBtn')) {
+      sidebar.classList.remove('open');
+    }
+  });
+
+  /* ── 回到顶部 ─────────────────────────── */
+  $('#topBtn').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+  /* ── Toast ────────────────────────────── */
+  let toastTimer;
+  function toast(msg) {
+    let t = $('.toast');
+    if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+})();
+</script>
+</main>
+</body>
+</html>
