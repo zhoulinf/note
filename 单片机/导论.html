@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>单片机零成本学习指南 · 从入门到进阶</title>
+<style>
+  :root{
+    --bg:#0f1419;
+    --card:#1a2028;
+    --card2:#212a34;
+    --border:#2d3a47;
+    --text:#e1e8ef;
+    --sub:#8b9bb0;
+    --accent:#3b82f6;
+    --accent2:#22c55e;
+    --accent3:#f59e0b;
+    --accent4:#a855f7;
+    --radius:12px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.75;
+    font-size:15px;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:40px 20px 80px;}
+
+  /* Header */
+  .hero{
+    text-align:center;
+    padding:50px 20px 40px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:40px;
+  }
+  .hero h1{
+    font-size:28px;
+    font-weight:700;
+    letter-spacing:-0.5px;
+    margin-bottom:12px;
+  }
+  .hero h1 span{color:var(--accent);}
+  .hero p{color:var(--sub);font-size:15px;max-width:600px;margin:0 auto;}
+
+  /* Section */
+  .section{margin-bottom:44px;}
+  .section-title{
+    font-size:20px;
+    font-weight:700;
+    padding-bottom:10px;
+    border-bottom:2px solid var(--border);
+    margin-bottom:24px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .section-title .num{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:28px;height:28px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:700;
+    color:#fff;
+    flex-shrink:0;
+  }
+  .n1{background:var(--accent);}
+  .n2{background:var(--accent2);}
+  .n3{background:var(--accent3);}
+  .n4{background:var(--accent4);}
+
+  /* Stage card */
+  .stage{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:22px 24px;
+    margin-bottom:16px;
+    position:relative;
+  }
+  .stage::before{
+    content:'';
+    position:absolute;
+    left:0;top:0;bottom:0;
+    width:3px;
+    border-radius:3px 0 0 3px;
+  }
+  .stage.s1::before{background:var(--accent);}
+  .stage.s2::before{background:var(--accent2);}
+  .stage.s3::before{background:var(--accent3);}
+  .stage.s4::before{background:var(--accent4);}
+
+  .stage h3{
+    font-size:17px;
+    font-weight:700;
+    margin-bottom:8px;
+  }
+  .stage .time{
+    display:inline-block;
+    font-size:12px;
+    color:var(--sub);
+    background:var(--card2);
+    padding:2px 10px;
+    border-radius:20px;
+    margin-bottom:12px;
+  }
+  .stage ul{
+    padding-left:18px;
+    color:var(--sub);
+    font-size:14px;
+  }
+  .stage ul li{margin-bottom:4px;}
+  .stage ul li strong{color:var(--text);font-weight:600;}
+  .tag{
+    display:inline-block;
+    font-size:11px;
+    padding:2px 8px;
+    border-radius:4px;
+    font-weight:600;
+    margin-right:6px;
+    vertical-align:middle;
+  }
+  .tag-blue{background:rgba(59,130,246,.15);color:#60a5fa;}
+  .tag-green{background:rgba(34,197,94,.15);color:#4ade80;}
+  .tag-amber{background:rgba(245,158,11,.15);color:#fbbf24;}
+  .tag-purple{background:rgba(168,85,247,.15);color:#c084fc;}
+
+  /* Tool card */
+  .tools-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  @media(min-width:640px){
+    .tools-grid{grid-template-columns:1fr 1fr;}
+  }
+  .tool-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+  }
+  .tool-card.featured{
+    grid-column:1/-1;
+    border-color:rgba(59,130,246,.4);
+    background:linear-gradient(135deg,rgba(59,130,246,.06),transparent 60%);
+  }
+  .tool-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+  }
+  .tool-head h4{font-size:16px;font-weight:700;}
+  .badge{
+    font-size:11px;
+    padding:2px 9px;
+    border-radius:20px;
+    font-weight:600;
+  }
+  .badge-free{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.25);}
+  .badge-reco{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.25);}
+  .badge-cn{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.2);}
+  .tool-card p{color:var(--sub);font-size:13.5px;margin-bottom:10px;}
+  .tool-card .url{
+    font-size:13px;
+    color:var(--accent);
+    word-break:break-all;
+    font-family:ui-monospace,monospace;
+    margin-top:auto;
+  }
+  .tool-card ul{
+    padding-left:16px;
+    color:var(--sub);
+    font-size:13px;
+    margin-bottom:10px;
+  }
+  .tool-card ul li{margin-bottom:2px;}
+
+  /* Flow */
+  .flow{
+    display:flex;
+    flex-direction:column;
+    gap:0;
+    counter-reset:step;
+  }
+  .flow-step{
+    display:flex;
+    gap:16px;
+    position:relative;
+    padding-bottom:28px;
+  }
+  .flow-step:last-child{padding-bottom:0;}
+  .flow-step::before{
+    counter-increment:step;
+    content:counter(step);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:32px;height:32px;
+    border-radius:50%;
+    background:var(--card2);
+    border:2px solid var(--border);
+    font-size:13px;
+    font-weight:700;
+    color:var(--accent);
+    flex-shrink:0;
+    z-index:1;
+  }
+  .flow-step:not(:last-child)::after{
+    content:'';
+    position:absolute;
+    left:15px;top:32px;
+    width:2px;height:calc(100% - 32px);
+    background:var(--border);
+  }
+  .flow-content{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:16px 18px;
+    flex:1;
+  }
+  .flow-content h4{font-size:14.5px;font-weight:700;margin-bottom:6px;}
+  .flow-content p{font-size:13.5px;color:var(--sub);}
+
+  /* Table */
+  .table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px;}
+  th{
+    background:var(--card2);
+    text-align:left;
+    padding:12px 16px;
+    font-weight:600;
+    font-size:13px;
+    color:var(--sub);
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+  td{
+    padding:11px 16px;
+    border-bottom:1px solid var(--border);
+    color:var(--sub);
+  }
+  tr:last-child td{border-bottom:none;}
+  td strong{color:var(--text);}
+
+  /* Tip */
+  .tip{
+    background:rgba(245,158,11,.06);
+    border:1px solid rgba(245,158,11,.2);
+    border-radius:10px;
+    padding:16px 18px;
+    font-size:13.5px;
+    color:var(--sub);
+    margin-top:16px;
+  }
+  .tip strong{color:var(--accent3);}
+
+  .footer{
+    text-align:center;
+    color:var(--sub);
+    font-size:12.5px;
+    margin-top:60px;
+    padding-top:24px;
+    border-top:1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>单片机零成本学习指南<br><span>从入门到进阶，不买板子也能学</span></h1>
+    <p>一份可以在浏览器里完成全部入门实践的路线图。你不需要在前期买任何开发板，所有实验都通过免费在线模拟平台完成。</p>
+  </div>
+
+  <!-- 1. 学习路线 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="num n1">1</span>
+      学习路线：四阶段循序渐进
+    </div>
+
+    <div class="stage s1">
+      <span class="time">第 1–2 个月</span>
+      <h3>基础铺垫期 · C语言 + 电路常识</h3>
+      <ul>
+        <li><strong>C语言核心：</strong>语法结构、数据类型、函数、结构体、指针、位操作。指针和位操作是嵌入式开发中最高频的语法，务必重点掌握。[reference:0]</li>
+        <li><strong>电路常识：</strong>认识电阻、电容、电感、LED、按键；理解欧姆定律、基尔霍夫定律、高低电平与数字逻辑。[reference:1]</li>
+        <li><strong>工具：</strong>VS Code（轻量，适合长期使用）写C语言练习。</li>
+        <li><strong>目标：</strong>能独立写出带指针操作和结构体的C程序，看懂简单电路图。</li>
+      </ul>
+    </div>
+
+    <div class="stage s2">
+      <span class="time">第 2–3 个月</span>
+      <h3>入门期 · 51单片机 · 裸机编程</h3>
+      <ul>
+        <li><strong>核心知识点：</strong>GPIO输入输出（流水灯、按键）、定时器、中断、串口通信（UART）、I2C、SPI。[reference:2]</li>
+        <li><strong>理解裸机编程：</strong>单片机的控制逻辑本质是电平信号操作，C语言底层仍然是寄存器读写。了解汇编语言有助于建立“寄存器思维”。[reference:3]</li>
+        <li><strong>开发工具：</strong>Keil C51（编译） + 在线模拟平台（运行验证）。</li>
+        <li><strong>目标：</strong>在模拟平台上完成流水灯、按键控制、定时器中断、串口收发等基础实验。</li>
+      </ul>
+    </div>
+
+    <div class="stage s3">
+      <span class="time">第 3–5 个月</span>
+      <h3>进阶期 · STM32 · 标准工具链</h3>
+      <ul>
+        <li><strong>核心外设：</strong>GPIO、UART、SPI/I2C、ADC/DAC、DMA、定时器高级用法、中断优先级。[reference:4]</li>
+        <li><strong>工具链：</strong>STM32CubeMX（图形化配置） + Keil MDK-ARM 或 VS Code + STM32CubeIDE（开源免费）。学会用 SWD/J-Link 调试。[reference:5]</li>
+        <li><strong>数据结构补充：</strong>队列、栈、链表、环形缓冲区。这些结构在嵌入式通信和任务调度中大量使用。[reference:6]</li>
+        <li><strong>目标：</strong>能独立完成一个带多外设协同的小项目（如传感器采集 + 屏幕显示 + 串口上传）。</li>
+      </ul>
+    </div>
+
+    <div class="stage s4">
+      <span class="time">第 5–8 个月及以后</span>
+      <h3>拓展期 · RTOS · 物联网 · Linux</h3>
+      <ul>
+        <li><strong>RTOS：</strong>FreeRTOS 或 RT-Thread，掌握任务创建/调度、信号量、队列、定时器。[reference:7]</li>
+        <li><strong>物联网通信：</strong>WiFi、Bluetooth、LoRa 至少掌握一种，实现设备联网上传数据。[reference:8]</li>
+        <li><strong>Linux 方向（可选）：</strong>Linux 基本操作、开发环境配置、驱动开发、应用开发。[reference:9]</li>
+        <li><strong>综合项目：</strong>在 STM32 上移植 FreeRTOS，多任务管理 + WiFi 联网上传温湿度数据到云端。[reference:10]</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 2. 模拟平台 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="num n2">2</span>
+      免费在线模拟平台：不买板子也能跑代码
+    </div>
+
+    <div class="tools-grid">
+
+      <div class="tool-card featured">
+        <div class="tool-head">
+          <h4>Wokwi</h4>
+          <span class="badge badge-reco">最推荐</span>
+          <span class="badge badge-free">个人免费</span>
+        </div>
+        <p>目前最成熟的浏览器端嵌入式仿真平台，被 Espressif 官方列为 ESP32 推荐仿真工具，全球多所大学用于教学。打开网页就能拖出开发板、写代码、点运行，LED 直接亮起。[reference:11]</p>
+        <ul>
+          <li><strong>支持芯片：</strong>Arduino Uno/Mega/Nano、ESP32 全系、STM32、树莓派 Pico、ATtiny85 等。[reference:12]</li>
+          <li><strong>支持语言：</strong>Arduino C++、MicroPython、CircuitPython、ESP-IDF、Rust。[reference:13]</li>
+          <li><strong>关键功能：</strong>WiFi 仿真（可连接真实互联网，跑 MQTT/HTTP）、虚拟逻辑分析仪（抓 UART/I2C/SPI 时序）、GDB 断点调试。[reference:14]</li>
+          <li><strong>免费限制：</strong>个人使用免费，项目为公开可见。商业/团队用途需要付费方案。[reference:15]</li>
+        </ul>
+        <div class="url">https://wokwi.com</div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-head">
+          <h4>Tinkercad Circuits</h4>
+          <span class="badge badge-free">免费</span>
+          <span class="badge badge-cn">国内可访问</span>
+        </div>
+        <p>Autodesk 出品的在线电路仿真工具，专注于 Arduino 仿真。界面极其简单，拖放元件、接线、写代码、一键运行，对纯新手最友好。[reference:16]</p>
+        <ul>
+          <li>支持 Arduino Uno R3 及常用传感器、LCD、舵机等。</li>
+          <li>内置代码编辑器，支持 Arduino C++。</li>
+          <li>实时仿真，接线错误会直观反馈。</li>
+        </ul>
+        <div class="url">https://www.tinkercad.com/circuits</div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-head">
+          <h4>Velxio</h4>
+          <span class="badge badge-free">开源免费</span>
+        </div>
+        <p>开源多板卡模拟器，浏览器直接运行，无需安装。支持 40+ 开发板，覆盖 AVR、ARM Cortex-M（RP2040/STM32）等 CPU 家族。[reference:17]</p>
+        <ul>
+          <li>支持 Arduino Uno、ESP32、ESP32-C3、Raspberry Pi Pico、Raspberry Pi 3 等。[reference:18]</li>
+          <li>核心开源（AGPLv3），可自托管。</li>
+          <li>适合想深入了解仿真器工作原理的学习者。</li>
+        </ul>
+        <div class="url">https://velxio.dev/editor</div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-head">
+          <h4>EDSim51</h4>
+          <span class="badge badge-free">免费</span>
+        </div>
+        <p>专门面向 8051 单片机的在线仿真器，如果你选择从 51 单片机入门，这个工具比通用平台更贴合学习场景。[reference:19]</p>
+        <ul>
+          <li>纯 51 指令集仿真，界面简洁。</li>
+          <li>适合配合 51 单片机教材做课后实验。</li>
+        </ul>
+        <div class="url">https://edsim51.com</div>
+      </div>
+
+    </div>
+
+    <div class="tip">
+      <strong>选择建议：</strong>如果你没有任何基础，从 <strong>Tinkercad Circuits</strong> 开始最轻松；想系统学习嵌入式开发，直接上 <strong>Wokwi</strong>，它对 Arduino / ESP32 / STM32 的支持最完整，且调试功能最强大。51 单片机学习者可以搭配 EDSim51 使用。
+    </div>
+  </div>
+
+  <!-- 3. 零成本学习流程 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="num n3">3</span>
+      零成本学习流程：从第一个 LED 到完整项目
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-content">
+          <h4>注册并创建第一个项目</h4>
+          <p>打开 Wokwi 或 Tinkercad Circuits，创建一个新项目。Wokwi 无需安装任何软件，打开浏览器即可开始。[reference:20]</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-content">
+          <h4>从“点亮一个 LED”开始</h4>
+          <p>拖出一个开发板和一个 LED，接上限流电阻，写几行代码控制 GPIO 电平，点运行。这是所有单片机学习者的第一个实验，也是理解“代码控制硬件”最直观的入口。</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-content">
+          <h4>逐步增加外设</h4>
+          <p>在 LED 基础上依次加入按键（输入）、蜂鸣器（PWM）、LCD 屏幕（I2C/SPI）、传感器（ADC）。每一步只引入一个新概念，在模拟环境中随便接线、随便试错——不用担心烧板子。[reference:21]</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-content">
+          <h4>用逻辑分析仪调试通信协议</h4>
+          <p>Wokwi 内置虚拟逻辑分析仪，可以直接抓取 UART、I2C、SPI 的时序波形。学习通信协议时，这比看数据手册直观得多，也避免了购买示波器的开销。[reference:22]</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-content">
+          <h4>完成一个综合小项目</h4>
+          <p>例如：ESP32 + 温湿度传感器 + OLED 屏幕 + WiFi 上传数据到手机。Wokwi 支持 WiFi 仿真，可以在没有硬件的情况下把云端和协议全部调通。[reference:23]</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-content">
+          <h4>此时再决定是否买板子</h4>
+          <p>完成 2–3 个模拟项目后，你已经清楚自己需要什么芯片、什么外设。届时可以选择一块与实际项目匹配的开发板，把在模拟器里验证过的代码直接烧录进去。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 平台对比 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="num n4">4</span>
+      平台速查对比
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>平台</th>
+            <th>支持芯片</th>
+            <th>语言</th>
+            <th>核心优势</th>
+            <th>费用</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Wokwi</strong></td>
+            <td>Arduino / ESP32 / STM32 / Pi Pico</td>
+            <td>C++ / MicroPython / Rust</td>
+            <td>WiFi 仿真、逻辑分析仪、GDB 调试</td>
+            <td>个人免费</td>
+          </tr>
+          <tr>
+            <td><strong>Tinkercad Circuits</strong></td>
+            <td>Arduino Uno</td>
+            <td>Arduino C++</td>
+            <td>极简拖放界面，新手友好</td>
+            <td>免费</td>
+          </tr>
+          <tr>
+            <td><strong>Velxio</strong></td>
+            <td>Arduino / ESP32 / Pi Pico / Pi 3</td>
+            <td>C++ / MicroPython</td>
+            <td>开源可自托管，40+ 板卡</td>
+            <td>开源免费</td>
+          </tr>
+          <tr>
+            <td><strong>EDSim51</strong></td>
+            <td>8051 / 51 单片机</td>
+            <td>C / 汇编</td>
+            <td>专为 51 教学设计</td>
+            <td>免费</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tip">
+      <strong>一句话总结：</strong>入门用 Tinkercad 建立信心 → 主力用 Wokwi 系统学习 → 51 学习者搭配 EDSim51 → 有开源/自托管需求看 Velxio。整个入门阶段可以做到<strong>零硬件支出</strong>。
+    </div>
+  </div>
+
+  <div class="footer">
+    单片机学习指南 · 所有推荐平台均为浏览器端免费工具，无需购买开发板即可开始学习
+  </div>
+
+</div>
+</body>
+</html>
