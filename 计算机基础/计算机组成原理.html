@@ -3,733 +3,1584 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>汇编语言从零入门 · 学习文档</title>
+<title>计算机系统组成原理 · 图文教程 + 考研计算全解</title>
 <style>
   :root{
-    --bg:#f7f8fa;
-    --card:#ffffff;
-    --text:#1f2328;
-    --muted:#57606a;
-    --line:#e3e6ea;
-    --accent:#2f6feb;
-    --accent-soft:#eaf1ff;
-    --code-bg:#1f2430;
-    --code-fg:#e6e6e6;
-    --warn-bg:#fff8e6;
-    --warn-line:#f0c36d;
+    --primary:#4f46e5;
+    --primary-light:#eef2ff;
+    --accent:#0ea5e9;
+    --text:#1e293b;
+    --muted:#64748b;
+    --border:#e2e8f0;
+    --exam:#dc2626;
+    --exam-light:#fef2f2;
+    --formula:#0f766e;
+    --formula-light:#f0fdfa;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{
     margin:0;
-    background:var(--bg);
-    color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-    line-height:1.75;
+    background:#f1f5f9;
+    color:var(--text);
+    line-height:1.85;
     font-size:16px;
   }
-  .layout{
-    max-width:1180px;
-    margin:0 auto;
-    padding:0 20px;
-    display:grid;
-    grid-template-columns:230px 1fr;
-    gap:36px;
-  }
-  /* ---------- 顶部标题 ---------- */
-  header.hero{
-    background:linear-gradient(135deg,#1f2a44 0%,#2f6feb 100%);
+
+  /* ---------- 顶部 ---------- */
+  header{
+    background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#0ea5e9 100%);
     color:#fff;
-    padding:56px 20px 48px;
-    margin-bottom:36px;
-  }
-  header.hero .inner{
-    max-width:1180px;
-    margin:0 auto;
-    padding:0 20px;
-  }
-  header.hero h1{
-    margin:0 0 12px;
-    font-size:34px;
-    letter-spacing:.5px;
-  }
-  header.hero p{
-    margin:0;
-    opacity:.9;
-    max-width:760px;
-    font-size:15.5px;
-  }
-  header.hero .tags{
-    margin-top:20px;
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-  }
-  header.hero .tags span{
-    background:rgba(255,255,255,.16);
-    border:1px solid rgba(255,255,255,.25);
-    padding:4px 12px;
-    border-radius:999px;
-    font-size:13px;
-  }
-  /* ---------- 目录 ---------- */
-  nav.toc{
-    position:sticky;
-    top:24px;
-    align-self:start;
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:18px 16px;
-    font-size:14px;
-    max-height:calc(100vh - 48px);
-    overflow:auto;
-  }
-  nav.toc h3{
-    margin:0 0 12px;
-    font-size:13px;
-    letter-spacing:1px;
-    color:var(--muted);
-    text-transform:uppercase;
-  }
-  nav.toc a{
-    display:block;
-    color:var(--text);
-    text-decoration:none;
-    padding:5px 8px;
-    border-radius:6px;
-    border-left:2px solid transparent;
-  }
-  nav.toc a:hover{
-    background:var(--accent-soft);
-    color:var(--accent);
-    border-left-color:var(--accent);
-  }
-  nav.toc a.sub{
-    padding-left:20px;
-    font-size:13px;
-    color:var(--muted);
-  }
-  /* ---------- 主内容 ---------- */
-  main{min-width:0;padding-bottom:80px;}
-  section{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:28px 30px;
-    margin-bottom:26px;
-  }
-  section h2{
-    margin:0 0 6px;
-    font-size:23px;
-    padding-bottom:12px;
-    border-bottom:2px solid var(--accent-soft);
-  }
-  section h2 .num{
-    display:inline-block;
-    min-width:30px;
-    height:30px;
-    line-height:30px;
+    padding:60px 24px 72px;
     text-align:center;
-    background:var(--accent);
-    color:#fff;
-    border-radius:8px;
-    font-size:15px;
-    margin-right:10px;
-    vertical-align:2px;
   }
-  h3{
-    font-size:18px;
-    margin:28px 0 10px;
-    padding-left:11px;
-    border-left:4px solid var(--accent);
+  header h1{
+    font-size:clamp(24px,4.2vw,40px);
+    margin:0 0 14px;
+    letter-spacing:1.5px;
+    font-weight:800;
   }
-  h4{font-size:15.5px;margin:20px 0 8px;color:#24292f;}
-  p{margin:10px 0;}
-  ul,ol{padding-left:24px;margin:10px 0;}
-  li{margin:6px 0;}
-  code{
-    background:#eef1f4;
-    padding:2px 6px;
-    border-radius:5px;
-    font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
-    font-size:13.5px;
-    color:#b1365b;
+  header p{margin:0;opacity:.92;font-size:15px;letter-spacing:.5px;}
+  header .badge{
+    display:inline-block;margin-top:18px;padding:5px 16px;
+    border:1px solid rgba(255,255,255,.5);border-radius:999px;
+    font-size:13px;letter-spacing:1px;
   }
-  pre{
-    background:var(--code-bg);
-    color:var(--code-fg);
-    padding:16px 18px;
-    border-radius:10px;
-    overflow-x:auto;
-    font-size:13.5px;
-    line-height:1.65;
-    margin:12px 0;
-    font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  header .badge.exam-badge{
+    background:rgba(220,38,38,.85);
+    border-color:rgba(255,255,255,.7);
+    margin-left:8px;
   }
-  pre code{
-    background:none;
-    color:inherit;
-    padding:0;
-    font-size:inherit;
+
+  /* ---------- 目录 ---------- */
+  .toc{
+    max-width:1080px;
+    margin:-38px auto 34px;
+    background:#fff;
+    border-radius:18px;
+    padding:18px 22px;
+    box-shadow:0 10px 34px rgba(15,23,42,.12);
+    display:flex;flex-wrap:wrap;gap:9px;justify-content:center;
+    position:relative;z-index:2;
   }
-  pre .cmt{color:#7f8ea3;}
-  pre .kw{color:#ff9d6b;}
-  pre .reg{color:#8fd3ff;}
-  pre .num{color:#c3e88d;}
-  /* ---------- 表格 ---------- */
-  table{
-    width:100%;
-    border-collapse:collapse;
-    margin:14px 0;
-    font-size:14.5px;
+  .toc a{
+    text-decoration:none;color:var(--primary);background:var(--primary-light);
+    padding:6px 15px;border-radius:999px;font-size:14px;font-weight:600;
+    transition:.2s;white-space:nowrap;
   }
-  th,td{
-    border:1px solid var(--line);
-    padding:9px 12px;
-    text-align:left;
-    vertical-align:top;
-  }
-  th{
-    background:#f2f5f9;
-    font-weight:600;
-    white-space:nowrap;
-  }
-  tbody tr:nth-child(even){background:#fafbfc;}
-  /* ---------- 卡片 ---------- */
-  .cards{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:16px;
-    margin:18px 0;
-  }
+  .toc a:hover{background:var(--primary);color:#fff;transform:translateY(-2px);}
+  .toc a.exam-link{color:var(--exam);background:var(--exam-light);}
+  .toc a.exam-link:hover{background:var(--exam);color:#fff;}
+
+  /* ---------- 主体 ---------- */
+  main{max-width:1080px;margin:0 auto;padding:0 20px 60px;}
+
   .card{
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:18px 20px;
-    background:#fcfdff;
+    background:#fff;
+    border-radius:18px;
+    padding:30px 34px;
+    margin-bottom:28px;
+    box-shadow:0 4px 22px rgba(15,23,42,.06);
   }
-  .card h4{margin-top:0;}
-  .card .link{
-    display:inline-block;
-    margin-top:10px;
-    font-size:13.5px;
-    color:var(--accent);
-    word-break:break-all;
+  .card.exam-card{
+    border-top:5px solid var(--exam);
   }
+
+  .card h2{
+    display:flex;align-items:center;gap:13px;
+    font-size:22px;margin:0 0 22px;color:#0f172a;line-height:1.4;
+  }
+  .num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:36px;height:36px;border-radius:11px;flex:none;
+    background:linear-gradient(135deg,#4f46e5,#7c3aed);
+    color:#fff;font-size:16px;font-weight:700;
+    box-shadow:0 4px 12px rgba(79,70,229,.35);
+  }
+  .num.exam-num{
+    background:linear-gradient(135deg,#dc2626,#f97316);
+    box-shadow:0 4px 12px rgba(220,38,38,.35);
+  }
+  .card h3{
+    font-size:17px;color:#312e81;margin:26px 0 12px;
+    padding-left:12px;border-left:4px solid var(--primary);line-height:1.4;
+  }
+  .card.exam-card h3{
+    color:#991b1b;border-left-color:var(--exam);
+  }
+  .card h4{
+    font-size:15.5px;color:#334155;margin:20px 0 10px;
+  }
+  .card p{margin:12px 0;}
+  .card ul,.card ol{margin:12px 0;padding-left:24px;}
+  .card li{margin:7px 0;}
+
+  /* ---------- 图 ---------- */
+  figure{margin:26px 0;}
+  figure svg{width:100%;height:auto;display:block;}
+  figcaption{
+    text-align:center;font-size:13.5px;color:var(--muted);
+    margin-top:12px;
+  }
+
   /* ---------- 提示框 ---------- */
   .tip{
-    border-left:4px solid var(--warn-line);
-    background:var(--warn-bg);
-    padding:12px 16px;
-    border-radius:0 10px 10px 0;
-    margin:16px 0;
+    background:#f0f9ff;border-left:4px solid var(--accent);
+    border-radius:10px;padding:14px 20px;margin:18px 0;font-size:15px;
+  }
+  .tip strong{color:#0369a1;}
+  .key{
+    background:#fffbeb;border-left:4px solid #f59e0b;
+    border-radius:10px;padding:14px 20px;margin:18px 0;font-size:15px;
+  }
+  .key strong{color:#b45309;}
+  .exam-tip{
+    background:var(--exam-light);border-left:4px solid var(--exam);
+    border-radius:10px;padding:14px 20px;margin:18px 0;font-size:15px;
+  }
+  .exam-tip strong{color:#991b1b;}
+
+  /* ---------- 公式框 ---------- */
+  .formula{
+    background:var(--formula-light);
+    border:1.5px dashed #14b8a6;
+    border-radius:12px;
+    padding:16px 22px;
+    margin:18px 0;
+    font-size:15.5px;
+    text-align:center;
+    line-height:2;
+  }
+  .formula .f-title{
+    display:block;
+    font-weight:700;
+    color:var(--formula);
+    font-size:13.5px;
+    letter-spacing:1px;
+    margin-bottom:6px;
+    text-align:left;
+  }
+  .formula .f-main{
+    font-family:ui-monospace,Menlo,Consolas,monospace;
+    font-size:16.5px;
+    font-weight:700;
+    color:#115e59;
+  }
+  .formula .f-note{
+    display:block;
+    font-size:13px;
+    color:#0d9488;
+    margin-top:6px;
+    text-align:left;
+  }
+
+  /* ---------- 例题框 ---------- */
+  .example{
+    background:#fafafa;
+    border:1.5px solid #e2e8f0;
+    border-radius:12px;
+    padding:16px 22px;
+    margin:20px 0;
+    font-size:15px;
+  }
+  .example .e-title{
+    display:inline-block;
+    background:#1e293b;
+    color:#fff;
+    font-size:12.5px;
+    font-weight:700;
+    padding:3px 12px;
+    border-radius:999px;
+    letter-spacing:1px;
+    margin-bottom:10px;
+  }
+  .example .e-q{
+    background:#fff7ed;
+    border-radius:8px;
+    padding:10px 15px;
+    margin:10px 0;
+    color:#9a3412;
     font-size:14.5px;
   }
-  .tip strong{color:#8a6100;}
-  .note{
-    border-left:4px solid var(--accent);
-    background:var(--accent-soft);
-    padding:12px 16px;
-    border-radius:0 10px 10px 0;
-    margin:16px 0;
+  .example .e-q::before{content:"📝 题　";font-weight:700;}
+  .example .e-a{
+    background:#f0fdf4;
+    border-radius:8px;
+    padding:10px 15px;
+    margin:10px 0;
+    color:#166534;
     font-size:14.5px;
   }
-  /* ---------- 时间轴 ---------- */
-  .timeline{
-    border-left:2px dashed #cfd6de;
-    margin:20px 0 10px 8px;
-    padding-left:24px;
+  .example .e-a::before{content:"✅ 解　";font-weight:700;}
+  .example .e-step{
+    padding-left:20px;
+    font-size:14.5px;
+    line-height:1.95;
   }
-  .step{position:relative;margin-bottom:24px;}
-  .step::before{
+  .example .e-step li{margin:4px 0;}
+
+  /* ---------- 表格 ---------- */
+  table{
+    width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;
+    border-radius:10px;overflow:hidden;box-shadow:0 0 0 1px var(--border);
+  }
+  th,td{padding:11px 15px;border-bottom:1px solid var(--border);text-align:left;}
+  th{background:#f8fafc;font-weight:700;color:#334155;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#f8fafc;}
+  code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    background:#f1f5f9;padding:2px 7px;border-radius:5px;
+    font-size:14px;color:#be185d;
+  }
+  .table-wrap{overflow-x:auto;}
+  .table-wrap table{min-width:560px;}
+
+  /* ---------- 二进制位 ---------- */
+  .bits{display:flex;gap:9px;justify-content:center;margin:22px 0;flex-wrap:wrap;}
+  .bit{
+    width:48px;height:58px;display:flex;align-items:center;justify-content:center;
+    border-radius:11px;font-size:23px;font-weight:700;
+    font-family:ui-monospace,Menlo,Consolas,monospace;
+    background:#f1f5f9;color:#94a3b8;border:2px solid var(--border);
+  }
+  .bit.one{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-color:#4f46e5;}
+  .bit.zero{background:#f8fafc;color:#cbd5e1;border-color:#e2e8f0;}
+  .bit-label{
+    text-align:center;font-size:13px;color:var(--muted);margin-top:-6px;
+  }
+
+  /* ---------- 地址字段图 ---------- */
+  .addr-fields{
+    display:flex;
+    margin:22px 0;
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 0 0 1.5px #334155;
+    text-align:center;
+    font-size:14px;
+  }
+  .addr-fields .af{
+    padding:14px 8px;
+    border-right:1.5px solid #334155;
+  }
+  .addr-fields .af:last-child{border-right:none;}
+  .addr-fields .af-title{font-weight:700;display:block;font-size:14.5px;}
+  .addr-fields .af-sub{display:block;font-size:12.5px;opacity:.85;margin-top:2px;}
+  .af-tag{background:#fef3c7;color:#92400e;flex:1;}
+  .af-set{background:#dbeafe;color:#1e40af;flex:1;}
+  .af-block{background:#dcfce7;color:#166534;flex:1;}
+  .af-page{background:#fae8ff;color:#86198f;flex:1;}
+  .af-off{background:#e0e7ff;color:#3730a3;flex:1;}
+
+  /* ---------- 问答 ---------- */
+  details{
+    background:#f8fafc;border-left:4px solid #38bdf8;border-radius:10px;
+    padding:13px 20px;margin:16px 0;
+  }
+  summary{cursor:pointer;font-weight:700;color:#0369a1;outline:none;list-style:none;}
+  summary::-webkit-details-marker{display:none;}
+  summary::before{content:"💡 ";}
+  details[open] summary{margin-bottom:10px;}
+  details p{margin:6px 0;font-size:15px;}
+
+  /* ---------- 卡片网格 ---------- */
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:16px;margin:22px 0;
+  }
+  .mini{
+    background:linear-gradient(160deg,#f8fafc,#eef2ff);
+    border:1px solid #e0e7ff;border-radius:14px;padding:18px;
+  }
+  .mini h4{margin:0 0 8px;font-size:15px;color:#4338ca;}
+  .mini p{margin:0;font-size:13.5px;color:#475569;line-height:1.7;}
+
+  /* ---------- 结尾树 ---------- */
+  .tree{
+    background:#0f172a;color:#e2e8f0;border-radius:14px;
+    padding:22px 26px;font-family:ui-monospace,Menlo,Consolas,monospace;
+    font-size:14px;line-height:2;overflow-x:auto;white-space:pre;
+  }
+  .tree .c1{color:#f472b6;}
+  .tree .c2{color:#60a5fa;}
+  .tree .c3{color:#34d399;}
+
+  /* ---------- 分隔标题 ---------- */
+  .section-divider{
+    text-align:center;
+    margin:50px 0 34px;
+    position:relative;
+  }
+  .section-divider::before{
     content:"";
     position:absolute;
-    left:-32px;
-    top:7px;
-    width:12px;height:12px;
-    border-radius:50%;
-    background:var(--accent);
-    border:3px solid #fff;
-    box-shadow:0 0 0 2px var(--accent-soft);
+    top:50%;left:0;right:0;
+    height:2px;
+    background:linear-gradient(90deg,transparent,#cbd5e1,transparent);
   }
-  .step .week{
+  .section-divider span{
+    position:relative;
+    background:#f1f5f9;
+    padding:0 22px;
+    font-size:20px;
+    font-weight:800;
+    letter-spacing:3px;
+    color:#475569;
+  }
+  .section-divider span.red{color:var(--exam);}
+
+  /* ---------- 星级标记 ---------- */
+  .star{
     display:inline-block;
-    background:var(--accent-soft);
-    color:var(--accent);
-    font-size:12.5px;
-    font-weight:600;
-    padding:2px 10px;
+    font-size:12px;
+    color:#f59e0b;
+    letter-spacing:1px;
+    margin-left:6px;
+    vertical-align:middle;
+  }
+  .freq-tag{
+    display:inline-block;
+    font-size:11.5px;
+    font-weight:700;
+    padding:2px 9px;
     border-radius:999px;
-    margin-bottom:6px;
+    margin-left:8px;
+    vertical-align:middle;
+    letter-spacing:.5px;
   }
-  .step h4{margin:4px 0 6px;font-size:16px;}
-  .step p{margin:4px 0;font-size:14.5px;color:#39414a;}
-  /* ---------- 对比表 ---------- */
-  .kbd{
-    font-family:Consolas,monospace;
-    background:#fff;
-    border:1px solid #d0d7de;
-    border-bottom-width:2px;
-    border-radius:5px;
-    padding:1px 6px;
-    font-size:13px;
-  }
+  .freq-high{background:#fee2e2;color:#b91c1c;}
+  .freq-mid{background:#fef3c7;color:#b45309;}
+  .freq-low{background:#e0e7ff;color:#3730a3;}
+
   footer{
-    text-align:center;
-    color:var(--muted);
-    font-size:13px;
-    padding:30px 20px 50px;
-    border-top:1px solid var(--line);
-    max-width:1180px;
-    margin:0 auto;
+    text-align:center;padding:34px 20px 50px;color:var(--muted);font-size:14px;
   }
-  /* ---------- 响应式 ---------- */
-  @media (max-width:900px){
-    .layout{grid-template-columns:1fr;gap:20px;}
-    nav.toc{position:static;max-height:none;}
-    .cards{grid-template-columns:1fr;}
-    header.hero h1{font-size:26px;}
-    section{padding:22px 18px;}
-  }
-  /* ---------- 打印 ---------- */
-  @media print{
-    body{background:#fff;font-size:12pt;}
-    header.hero{background:#1f2a44 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    nav.toc{display:none;}
-    .layout{grid-template-columns:1fr;max-width:100%;padding:0;}
-    section{page-break-inside:avoid;border:1px solid #ccc;box-shadow:none;}
-    pre{background:#f4f4f4 !important;color:#111 !important;border:1px solid #ddd;}
-    pre .cmt{color:#777;} pre .kw{color:#a33;} pre .reg{color:#036;} pre .num{color:#070;}
+
+  @media (max-width:640px){
+    .card{padding:22px 20px;border-radius:14px;}
+    .card h2{font-size:19px;}
+    .num{width:31px;height:31px;font-size:14px;}
+    .bit{width:38px;height:48px;font-size:19px;}
+    .toc{border-radius:14px;padding:14px;}
+    .addr-fields{font-size:11.5px;}
+    .addr-fields .af{padding:10px 3px;}
+    .addr-fields .af-title{font-size:12px;}
+    .addr-fields .af-sub{font-size:10px;}
+    .formula .f-main{font-size:14px;}
   }
 </style>
 </head>
 <body>
 
-<header class="hero">
-  <div class="inner">
-    <h1>汇编语言从零入门 · 学习文档</h1>
-    <p>面向有前端 / Java 基础的开发者。从最经典的教材出发，配合可动手的代码课程，按周推进，逐步建立「CPU 到底在干什么」的底层心智模型。</p>
-    <div class="tags">
-      <span>x86 架构</span>
-      <span>王爽《汇编语言》</span>
-      <span>NASM 实战</span>
-      <span>栈帧与函数调用</span>
-      <span>逆向与 Shellcode</span>
-    </div>
+<header>
+  <h1>计算机系统组成原理</h1>
+  <p>图文教程 + 考研计算全解　·　从零基础到408通关</p>
+  <div>
+    <span class="badge">硬件 + 软件 = 计算机系统</span>
+    <span class="badge exam-badge">考研 408 · 45 分</span>
   </div>
 </header>
 
-<div class="layout">
+<nav class="toc">
+  <a href="#s1">① 系统构成</a>
+  <a href="#s2">② 冯·诺依曼</a>
+  <a href="#s3">③ CPU</a>
+  <a href="#s4">④ 存储器</a>
+  <a href="#s5">⑤ 总线与IO</a>
+  <a href="#s6">⑥ 指令周期</a>
+  <a href="#s7">⑦ 数据表示</a>
+  <a href="#s8">⑧ 性能指标</a>
+  <a href="#s9">⑨ 知识总结</a>
+  <a href="#k1" class="exam-link">🎯 考情分析</a>
+  <a href="#k2" class="exam-link">🎯 性能计算</a>
+  <a href="#k3" class="exam-link">🎯 数据表示计算</a>
+  <a href="#k4" class="exam-link">🎯 存储计算</a>
+  <a href="#k5" class="exam-link">🎯 指令系统计算</a>
+  <a href="#k6" class="exam-link">🎯 流水线计算</a>
+  <a href="#k7" class="exam-link">🎯 总线/IO计算</a>
+  <a href="#k8" class="exam-link">🎯 速查表</a>
+</nav>
 
-  <!-- ============ 目录 ============ -->
-  <nav class="toc">
-    <h3>目录</h3>
-    <a href="#why">0 · 为什么值得学</a>
-    <a href="#res">1 · 推荐资源</a>
-    <a href="#res1" class="sub">王爽在线笔记</a>
-    <a href="#res2" class="sub">GitHub 18 课</a>
-    <a href="#path">2 · 学习路径</a>
-    <a href="#env">3 · 环境搭建</a>
-    <a href="#first">4 · 第一个程序</a>
-    <a href="#map">5 · Java/JS 对照速查</a>
-    <a href="#stack">6 · 栈帧与函数调用</a>
-    <a href="#faq">7 · 常见问题</a>
-    <a href="#checklist">8 · 自检清单</a>
-  </nav>
+<main>
 
-  <!-- ============ 正文 ============ -->
-  <main>
+<!-- ================= 第一部分：基础图文教程 ================= -->
 
-    <!-- ---------- 0 ---------- -->
-    <section id="why">
-      <h2><span class="num">0</span>为什么前端 / Java 开发者值得学汇编</h2>
-      <p>学汇编<strong>不是为了用它写业务系统</strong>，而是为了补齐「从源码到机器」之间那段被高级语言隐藏掉的认知。</p>
-      <ul>
-        <li><strong>理解 Java 方法调用的真相</strong>：栈帧、局部变量表、操作数栈、返回地址，在汇编层面就是 <code>push</code> / <code>pop</code> / <code>call</code> / <code>ret</code> 加上 <code>ebp</code>、<code>esp</code> 两个寄存器在移动。</li>
-        <li><strong>理解 JS 引擎与内存</strong>：V8 的 JIT、内联缓存、栈上分配，本质都是对寄存器和内存布局的调度。</li>
-        <li><strong>调试能力的质变</strong>：崩溃栈、core dump、JNI 错误、性能火焰图，看得懂汇编就能往下再钻一层。</li>
-        <li><strong>安全方向的门票</strong>：漏洞利用、逆向分析、Shellcode 编写，全部以汇编为母语。</li>
+<div class="section-divider"><span>第一部分　基础图文教程</span></div>
+
+<!-- ---------- 1 ---------- -->
+<section class="card" id="s1">
+  <h2><span class="num">1</span>计算机系统长什么样？</h2>
+
+  <p>很多人一听到"计算机组成原理"就觉得是硬件课，其实它讲的是<strong>硬件和软件如何配合</strong>，让一台机器真正"跑起来"。</p>
+
+  <p>一台计算机系统 = <strong>硬件</strong> + <strong>软件</strong>。二者缺一不可：没有软件的硬件只是一堆废铁，没有硬件的软件只是纸上谈兵。</p>
+
+  <figure>
+    <svg viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+      <rect x="100" y="20" width="600" height="62" rx="14" fill="#8b5cf6"/>
+      <text x="400" y="48" text-anchor="middle" fill="#fff" font-size="17" font-weight="700">应用软件</text>
+      <text x="400" y="70" text-anchor="middle" fill="#ede9fe" font-size="12.5">微信 · 浏览器 · 游戏 · Office</text>
+
+      <rect x="60" y="104" width="680" height="62" rx="14" fill="#0ea5e9"/>
+      <text x="400" y="132" text-anchor="middle" fill="#fff" font-size="17" font-weight="700">系统软件</text>
+      <text x="400" y="154" text-anchor="middle" fill="#cffafe" font-size="12.5">操作系统 · 编译器 · 驱动程序 · 数据库</text>
+
+      <rect x="20" y="188" width="760" height="62" rx="14" fill="#475569"/>
+      <text x="400" y="216" text-anchor="middle" fill="#fff" font-size="17" font-weight="700">硬件</text>
+      <text x="400" y="238" text-anchor="middle" fill="#cbd5e1" font-size="12.5">CPU · 内存 · 主板 · 硬盘 · 显示器 · 键盘</text>
+
+      <path d="M400 86 L400 100" stroke="#cbd5e1" stroke-width="2"/>
+      <path d="M400 170 L400 184" stroke="#cbd5e1" stroke-width="2"/>
+    </svg>
+    <figcaption>图 1-1　计算机系统的三层结构：越往下越"底层"，越往上越"贴近人"</figcaption>
+  </figure>
+
+  <div class="tip">
+    <strong>一句话理解：</strong>硬件是"身体"，软件是"灵魂"。本教程主要讲<strong>硬件这一层</strong>是怎么组织和工作的。
+  </div>
+</section>
+
+<!-- ---------- 2 ---------- -->
+<section class="card" id="s2">
+  <h2><span class="num">2</span>冯·诺依曼体系结构：计算机的"总图纸"</h2>
+
+  <p>1945 年，数学家冯·诺依曼提出了一个至今仍在使用的计算机结构思想，核心只有两条：</p>
+
+  <ol>
+    <li><strong>存储程序</strong>：程序和数据一样，都以二进制形式存放在存储器里。</li>
+    <li><strong>顺序执行</strong>：CPU 按顺序一条一条地取出指令、执行指令。</li>
+  </ol>
+
+  <p>整个计算机被划分为<strong>五大部件</strong>，它们通过<strong>总线</strong>互相连接：</p>
+
+  <figure>
+    <svg viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+        </marker>
+      </defs>
+
+      <rect x="300" y="45" width="300" height="195" rx="20" fill="#eef2ff" stroke="#6366f1" stroke-width="2.5"/>
+      <text x="450" y="80" text-anchor="middle" font-size="17" font-weight="700" fill="#4338ca">CPU 中央处理器</text>
+
+      <rect x="325" y="96" width="118" height="126" rx="13" fill="#6366f1"/>
+      <text x="384" y="150" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">控制器</text>
+      <text x="384" y="174" text-anchor="middle" fill="#c7d2fe" font-size="12">CU</text>
+      <text x="384" y="196" text-anchor="middle" fill="#c7d2fe" font-size="11">指挥中心</text>
+
+      <rect x="457" y="96" width="118" height="126" rx="13" fill="#8b5cf6"/>
+      <text x="516" y="150" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">运算器</text>
+      <text x="516" y="174" text-anchor="middle" fill="#ede9fe" font-size="12">ALU</text>
+      <text x="516" y="196" text-anchor="middle" fill="#ede9fe" font-size="11">加工数据</text>
+
+      <rect x="50" y="95" width="175" height="95" rx="15" fill="#06b6d4"/>
+      <text x="137" y="136" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">输入设备</text>
+      <text x="137" y="162" text-anchor="middle" fill="#cffafe" font-size="11.5">键盘 · 鼠标 · 扫描仪</text>
+
+      <rect x="675" y="95" width="175" height="95" rx="15" fill="#f59e0b"/>
+      <text x="762" y="136" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">输出设备</text>
+      <text x="762" y="162" text-anchor="middle" fill="#fef3c7" font-size="11.5">显示器 · 打印机</text>
+
+      <rect x="50" y="290" width="800" height="38" rx="10" fill="#334155"/>
+      <text x="450" y="315" text-anchor="middle" fill="#fff" font-size="13.5" font-weight="600">
+        系统总线　·　数据总线　·　地址总线　·　控制总线
+      </text>
+
+      <rect x="250" y="350" width="400" height="125" rx="15" fill="#10b981"/>
+      <text x="450" y="393" text-anchor="middle" fill="#fff" font-size="18" font-weight="700">存储器 Memory</text>
+      <text x="450" y="422" text-anchor="middle" fill="#d1fae5" font-size="12.5">存放程序和数据 · 按地址访问</text>
+      <text x="450" y="447" text-anchor="middle" fill="#d1fae5" font-size="12.5">主存（内存） + 辅存（外存）</text>
+
+      <line x1="137" y1="192" x2="137" y2="286" stroke="#94a3b8" stroke-width="2.5"
+            marker-start="url(#arr2)" marker-end="url(#arr2)"/>
+      <line x1="762" y1="192" x2="762" y2="286" stroke="#94a3b8" stroke-width="2.5"
+            marker-start="url(#arr2)" marker-end="url(#arr2)"/>
+      <line x1="450" y1="242" x2="450" y2="286" stroke="#94a3b8" stroke-width="2.5"
+            marker-start="url(#arr2)" marker-end="url(#arr2)"/>
+      <line x1="450" y1="330" x2="450" y2="346" stroke="#94a3b8" stroke-width="2.5"
+            marker-start="url(#arr2)" marker-end="url(#arr2)"/>
+    </svg>
+    <figcaption>图 2-1　冯·诺依曼五大部件与总线连接示意图</figcaption>
+  </figure>
+
+  <h3>五大部件各干什么？</h3>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th style="width:130px">部件</th><th>作用</th><th style="width:190px">打个比方</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>运算器</strong></td><td>完成算术运算（加减乘除）和逻辑运算（与或非）</td><td>工厂里的加工车间</td></tr>
+      <tr><td><strong>控制器</strong></td><td>取指令、分析指令、发出控制信号，协调各部件</td><td>工厂里的调度中心</td></tr>
+      <tr><td><strong>存储器</strong></td><td>存放程序和数据，按地址读写</td><td>仓库</td></tr>
+      <tr><td><strong>输入设备</strong></td><td>把外界信息变成计算机能识别的二进制</td><td>进货口</td></tr>
+      <tr><td><strong>输出设备</strong></td><td>把计算结果变成人类能看懂的形式</td><td>出货口</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="key">
+    <strong>划重点：</strong>现代计算机把<strong>运算器 + 控制器 + 寄存器组</strong>集成在一块芯片上，统称为 <strong>CPU</strong>。所以"五大部件"实际常被说成"CPU + 存储器 + 输入设备 + 输出设备"。
+  </div>
+
+  <details>
+    <summary>想一想：为什么程序要和数据放在一起？</summary>
+    <p>如果把程序写死在电路里（像早期的插线板计算机），换一个任务就要重新接线，非常麻烦。把程序当成"数据"存进内存后，只要换一段程序，同一台机器就能干完全不同的事——这就是现代计算机"通用性"的来源。</p>
+  </details>
+</section>
+
+<!-- ---------- 3 ---------- -->
+<section class="card" id="s3">
+  <h2><span class="num">3</span>CPU：计算机的"大脑"</h2>
+
+  <p>CPU（Central Processing Unit，中央处理器）是整台机器的核心，它由三大部分组成：</p>
+
+  <figure>
+    <svg viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg">
+      <rect x="40" y="28" width="820" height="368" rx="22" fill="#eef2ff" stroke="#6366f1" stroke-width="2.5"/>
+      <text x="450" y="62" text-anchor="middle" font-size="17" font-weight="700" fill="#4338ca">CPU 内部结构</text>
+
+      <rect x="70" y="95" width="190" height="130" rx="14" fill="#6366f1"/>
+      <text x="165" y="148" text-anchor="middle" fill="#fff" font-size="17" font-weight="700">控制器 CU</text>
+      <text x="165" y="175" text-anchor="middle" fill="#c7d2fe" font-size="12">取指令 · 译码</text>
+      <text x="165" y="197" text-anchor="middle" fill="#c7d2fe" font-size="12">产生控制信号</text>
+
+      <rect x="70" y="245" width="190" height="120" rx="14" fill="#8b5cf6"/>
+      <text x="165" y="298" text-anchor="middle" fill="#fff" font-size="17" font-weight="700">运算器 ALU</text>
+      <text x="165" y="325" text-anchor="middle" fill="#ede9fe" font-size="12">算术运算</text>
+      <text x="165" y="346" text-anchor="middle" fill="#ede9fe" font-size="12">逻辑运算</text>
+
+      <rect x="290" y="95" width="290" height="270" rx="14" fill="#fff" stroke="#a5b4fc"
+            stroke-width="2" stroke-dasharray="6 5"/>
+      <text x="435" y="122" text-anchor="middle" font-size="14" font-weight="700" fill="#4338ca">寄存器组（CPU 内部的极速小仓库）</text>
+
+      <rect x="312" y="140" width="108" height="42" rx="9" fill="#e0e7ff"/>
+      <text x="366" y="158" text-anchor="middle" font-size="12.5" font-weight="700" fill="#3730a3">PC</text>
+      <text x="366" y="174" text-anchor="middle" font-size="10.5" fill="#4f46e5">指令地址</text>
+
+      <rect x="450" y="140" width="108" height="42" rx="9" fill="#e0e7ff"/>
+      <text x="504" y="158" text-anchor="middle" font-size="12.5" font-weight="700" fill="#3730a3">IR</text>
+      <text x="504" y="174" text-anchor="middle" font-size="10.5" fill="#4f46e5">当前指令</text>
+
+      <rect x="312" y="192" width="108" height="42" rx="9" fill="#e0e7ff"/>
+      <text x="366" y="210" text-anchor="middle" font-size="12.5" font-weight="700" fill="#3730a3">MAR</text>
+      <text x="366" y="226" text-anchor="middle" font-size="10.5" fill="#4f46e5">地址寄存器</text>
+
+      <rect x="450" y="192" width="108" height="42" rx="9" fill="#e0e7ff"/>
+      <text x="504" y="210" text-anchor="middle" font-size="12.5" font-weight="700" fill="#3730a3">MDR</text>
+      <text x="504" y="226" text-anchor="middle" font-size="10.5" fill="#4f46e5">数据寄存器</text>
+
+      <rect x="312" y="244" width="246" height="42" rx="9" fill="#c7d2fe"/>
+      <text x="435" y="270" text-anchor="middle" font-size="12.5" font-weight="700" fill="#312e81">
+        通用寄存器组　R0 ~ Rn
+      </text>
+
+      <rect x="312" y="296" width="246" height="42" rx="9" fill="#e0e7ff"/>
+      <text x="435" y="316" text-anchor="middle" font-size="12.5" font-weight="700" fill="#3730a3">PSW</text>
+      <text x="435" y="332" text-anchor="middle" font-size="10.5" fill="#4f46e5">状态标志寄存器</text>
+
+      <rect x="610" y="95" width="220" height="270" rx="14" fill="#ecfeff" stroke="#06b6d4" stroke-width="2"/>
+      <text x="720" y="150" text-anchor="middle" font-size="16" font-weight="700" fill="#0e7490">Cache</text>
+      <text x="720" y="176" text-anchor="middle" font-size="13" fill="#0891b2">高速缓存</text>
+      <text x="720" y="222" text-anchor="middle" font-size="12" fill="#0e7490">L1 / L2 / L3</text>
+      <text x="720" y="262" text-anchor="middle" font-size="12" fill="#0e7490">存放最近常用</text>
+      <text x="720" y="284" text-anchor="middle" font-size="12" fill="#0e7490">的指令和数据</text>
+      <text x="720" y="326" text-anchor="middle" font-size="12" fill="#0e7490">速度接近 CPU</text>
+    </svg>
+    <figcaption>图 3-1　CPU 内部：控制器 + 运算器 + 寄存器组 + 高速缓存</figcaption>
+  </figure>
+
+  <h3>控制器（CU）：指挥官</h3>
+  <ul>
+    <li>从内存取出指令</li>
+    <li>分析这条指令要干什么（译码）</li>
+    <li>向运算器、存储器、IO 发出相应的控制信号</li>
+  </ul>
+
+  <h3>运算器（ALU）：干活的手</h3>
+  <ul>
+    <li>算术运算：加、减、乘、除</li>
+    <li>逻辑运算：与、或、非、异或、移位、比较</li>
+    <li>本身很"笨"，只会算，全靠控制器指挥</li>
+  </ul>
+
+  <h3>寄存器：CPU 的"手掌心"</h3>
+  <p>寄存器是 CPU 内部<strong>速度最快、容量最小</strong>的存储单元。几个常见角色：</p>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th style="width:110px">名称</th><th>英文</th><th>作用</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>PC</strong></td><td>Program Counter</td><td>存放下一条要执行指令的地址，每执行一条自动 +1</td></tr>
+      <tr><td><strong>IR</strong></td><td>Instruction Register</td><td>存放当前正在执行的那条指令</td></tr>
+      <tr><td><strong>MAR</strong></td><td>Memory Address Register</td><td>存放要访问的内存地址</td></tr>
+      <tr><td><strong>MDR</strong></td><td>Memory Data Register</td><td>存放从内存读出或要写入内存的数据</td></tr>
+      <tr><td><strong>PSW</strong></td><td>Program Status Word</td><td>存放运算结果的状态（进位、溢出、零标志等）</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="tip">
+    <strong>形象比喻：</strong>把 CPU 想象成一个厨师。<br>
+    控制器 = 大脑，决定下一步做什么菜；<br>
+    运算器 = 双手，负责切菜炒菜；<br>
+    寄存器 = 手边的调料碗，随手就能拿到；<br>
+    Cache = 冰箱，取东西比去超市（内存）快得多。
+  </div>
+</section>
+
+<!-- ---------- 4 ---------- -->
+<section class="card" id="s4">
+  <h2><span class="num">4</span>存储器：计算机的"记忆"</h2>
+
+  <p>存储器不是一个东西，而是一个<strong>金字塔式的层次结构</strong>。越往上越快、越小、越贵；越往下越慢、越大、越便宜。</p>
+
+  <figure>
+    <svg viewBox="0 0 800 470" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="310,20 490,20 544,100 256,100" fill="#ef4444" stroke="#fff" stroke-width="2.5"/>
+      <polygon points="256,100 544,100 598,180 202,180" fill="#f59e0b" stroke="#fff" stroke-width="2.5"/>
+      <polygon points="202,180 598,180 652,260 148,260" fill="#10b981" stroke="#fff" stroke-width="2.5"/>
+      <polygon points="148,260 652,260 706,340 94,340" fill="#3b82f6" stroke="#fff" stroke-width="2.5"/>
+      <polygon points="94,340 706,340 760,420 40,420" fill="#8b5cf6" stroke="#fff" stroke-width="2.5"/>
+
+      <text x="400" y="66" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">寄存器</text>
+      <text x="400" y="146" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">高速缓存 Cache</text>
+      <text x="400" y="226" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">主存（内存）</text>
+      <text x="400" y="306" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">外存（SSD / 硬盘）</text>
+      <text x="400" y="386" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">后备存储（磁带 / 云）</text>
+    </svg>
+    <figcaption>图 4-1　存储层次金字塔：越靠上越快越小越贵</figcaption>
+  </figure>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>层次</th><th>典型容量</th><th>访问速度</th><th>特点</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>寄存器</td><td>几十 ~ 几百字节</td><td>约 0.3 纳秒</td><td>在 CPU 内部，最快</td></tr>
+      <tr><td>Cache</td><td>几 MB ~ 几十 MB</td><td>1 ~ 10 纳秒</td><td>缓解 CPU 与内存的速度差</td></tr>
+      <tr><td>主存（内存）</td><td>8 GB ~ 64 GB</td><td>约 50 ~ 100 纳秒</td><td>断电即失，程序运行时住这里</td></tr>
+      <tr><td>外存（SSD/硬盘）</td><td>256 GB ~ 数 TB</td><td>微秒 ~ 毫秒级</td><td>断电不丢，长期存放</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>内存是怎么"找东西"的？</h3>
+  <p>内存被划分成一个个<strong>存储单元</strong>，每个单元有一个唯一的<strong>地址</strong>，就像一条街上每户人家都有门牌号。</p>
+
+  <figure>
+    <svg viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+      <text x="60" y="40" font-size="14" font-weight="700" fill="#334155">地址</text>
+      <text x="220" y="40" font-size="14" font-weight="700" fill="#334155">存储单元内容</text>
+      <g font-family="ui-monospace,Menlo,monospace" font-size="13">
+        <rect x="40" y="52" width="120" height="30" rx="6" fill="#e0e7ff"/>
+        <text x="100" y="72" text-anchor="middle" fill="#3730a3">0000</text>
+        <rect x="180" y="52" width="260" height="30" rx="6" fill="#f1f5f9"/>
+        <text x="310" y="72" text-anchor="middle" fill="#475569">10110010</text>
+
+        <rect x="40" y="90" width="120" height="30" rx="6" fill="#e0e7ff"/>
+        <text x="100" y="110" text-anchor="middle" fill="#3730a3">0001</text>
+        <rect x="180" y="90" width="260" height="30" rx="6" fill="#f1f5f9"/>
+        <text x="310" y="110" text-anchor="middle" fill="#475569">00101101</text>
+
+        <rect x="40" y="128" width="120" height="30" rx="6" fill="#c7d2fe"/>
+        <text x="100" y="148" text-anchor="middle" fill="#312e81" font-weight="700">0010</text>
+        <rect x="180" y="128" width="260" height="30" rx="6" fill="#c7d2fe"/>
+        <text x="310" y="148" text-anchor="middle" fill="#312e81" font-weight="700">11110000</text>
+
+        <rect x="40" y="166" width="120" height="30" rx="6" fill="#e0e7ff"/>
+        <text x="100" y="186" text-anchor="middle" fill="#3730a3">0011</text>
+        <rect x="180" y="166" width="260" height="30" rx="6" fill="#f1f5f9"/>
+        <text x="310" y="186" text-anchor="middle" fill="#475569">01010101</text>
+      </g>
+      <text x="480" y="148" font-size="13.5" fill="#4f46e5" font-weight="700">← 地址 0010 里存着 11110000</text>
+      <text x="480" y="174" font-size="12.5" fill="#64748b">CPU 只要给出地址，</text>
+      <text x="480" y="194" font-size="12.5" fill="#64748b">就能读写对应的内容</text>
+    </svg>
+    <figcaption>图 4-2　内存按地址访问示意</figcaption>
+  </figure>
+
+  <details>
+    <summary>想一想：内存 8GB 和硬盘 512GB，为什么不都用内存？</summary>
+    <p>因为内存（DRAM）速度快但成本高、断电就丢数据。硬盘便宜、容量大、断电不丢。计算机采用"金字塔"策略：用少量昂贵的内存保证速度，用大量便宜的硬盘保证容量，再用 Cache 把最常用的数据搬到 CPU 旁边，兼顾速度与成本。</p>
+  </details>
+</section>
+
+<!-- ---------- 5 ---------- -->
+<section class="card" id="s5">
+  <h2><span class="num">5</span>总线与输入输出：计算机的"血管"和"五官"</h2>
+
+  <h3>总线（Bus）：一根线，传三类信号</h3>
+  <p>如果 CPU、内存、硬盘之间两两连线，线路数量会爆炸。所以计算机采用<strong>总线</strong>——一组公共的连线，所有部件都挂在上面，分时使用。</p>
+
+  <figure>
+    <svg viewBox="0 0 860 300" xmlns="http://www.w3.org/2000/svg">
+      <rect x="30" y="30" width="800" height="46" rx="10" fill="#1e40af"/>
+      <text x="430" y="59" text-anchor="middle" fill="#fff" font-size="15" font-weight="700">
+        数据总线（Data Bus）—— 传数据，双向
+      </text>
+
+      <rect x="30" y="96" width="800" height="46" rx="10" fill="#0e7490"/>
+      <text x="430" y="125" text-anchor="middle" fill="#fff" font-size="15" font-weight="700">
+        地址总线（Address Bus）—— 传地址，单向
+      </text>
+
+      <rect x="30" y="162" width="800" height="46" rx="10" fill="#7c2d12"/>
+      <text x="430" y="191" text-anchor="middle" fill="#fff" font-size="15" font-weight="700">
+        控制总线（Control Bus）—— 传控制信号，双向
+      </text>
+
+      <g font-size="13" fill="#475569">
+        <rect x="70" y="235" width="130" height="44" rx="10" fill="#eef2ff" stroke="#6366f1"/>
+        <text x="135" y="262" text-anchor="middle" fill="#4338ca" font-weight="700">CPU</text>
+
+        <rect x="365" y="235" width="130" height="44" rx="10" fill="#ecfdf5" stroke="#10b981"/>
+        <text x="430" y="262" text-anchor="middle" fill="#047857" font-weight="700">内存</text>
+
+        <rect x="660" y="235" width="130" height="44" rx="10" fill="#fff7ed" stroke="#f59e0b"/>
+        <text x="725" y="262" text-anchor="middle" fill="#b45309" font-weight="700">外设 / 硬盘</text>
+      </g>
+    </svg>
+    <figcaption>图 5-1　三类总线各司其职</figcaption>
+  </figure>
+
+  <div class="tip">
+    <strong>关键点：</strong><br>
+    <strong>数据总线</strong>的条数决定一次能搬多少位数据（32 位 / 64 位）；<br>
+    <strong>地址总线</strong>的条数决定能寻址多大空间（n 条地址线 → 2ⁿ 个地址）。
+  </div>
+
+  <h3>输入 / 输出设备：计算机的"五官与手脚"</h3>
+  <div class="grid">
+    <div class="mini">
+      <h4>输入设备</h4>
+      <p>键盘、鼠标、触摸屏、摄像头、麦克风、扫描仪<br>把现实世界的信息转换成二进制 0/1</p>
+    </div>
+    <div class="mini">
+      <h4>输出设备</h4>
+      <p>显示器、打印机、音箱、投影仪<br>把二进制结果还原成人能看懂的形式</p>
+    </div>
+    <div class="mini">
+      <h4>外存设备</h4>
+      <p>SSD、机械硬盘、U 盘、光盘<br>既是输入设备也是输出设备，可长期保存数据</p>
+    </div>
+    <div class="mini">
+      <h4>接口 / 驱动</h4>
+      <p>USB、HDMI、网口等接口 + 驱动程序<br>负责速度匹配与信号转换</p>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- 6 ---------- -->
+<section class="card" id="s6">
+  <h2><span class="num">6</span>一条指令的一生：指令周期</h2>
+
+  <p>CPU 的工作说白了就是<strong>不停地重复同一个循环</strong>：取指令 → 分析 → 执行。这个过程叫<strong>指令周期</strong>。</p>
+
+  <figure>
+    <svg viewBox="0 0 900 160" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+        </marker>
+      </defs>
+
+      <rect x="20" y="35" width="145" height="80" rx="14" fill="#4f46e5"/>
+      <text x="92" y="72" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">取指令</text>
+      <text x="92" y="94" text-anchor="middle" fill="#c7d2fe" font-size="12">Fetch</text>
+
+      <rect x="196" y="35" width="145" height="80" rx="14" fill="#7c3aed"/>
+      <text x="268" y="72" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">译码</text>
+      <text x="268" y="94" text-anchor="middle" fill="#ddd6fe" font-size="12">Decode</text>
+
+      <rect x="372" y="35" width="145" height="80" rx="14" fill="#0ea5e9"/>
+      <text x="444" y="72" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">执行</text>
+      <text x="444" y="94" text-anchor="middle" fill="#e0f2fe" font-size="12">Execute</text>
+
+      <rect x="548" y="35" width="145" height="80" rx="14" fill="#10b981"/>
+      <text x="620" y="72" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">访存</text>
+      <text x="620" y="94" text-anchor="middle" fill="#d1fae5" font-size="12">Memory</text>
+
+      <rect x="724" y="35" width="145" height="80" rx="14" fill="#f59e0b"/>
+      <text x="796" y="72" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">写回</text>
+      <text x="796" y="94" text-anchor="middle" fill="#fef3c7" font-size="12">Write Back</text>
+
+      <line x1="168" y1="75" x2="192" y2="75" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr3)"/>
+      <line x1="344" y1="75" x2="368" y2="75" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr3)"/>
+      <line x1="520" y1="75" x2="544" y2="75" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr3)"/>
+      <line x1="696" y1="75" x2="720" y2="75" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arr3)"/>
+    </svg>
+    <figcaption>图 6-1　指令周期的五个阶段（并非每条指令都需要全部阶段）</figcaption>
+  </figure>
+
+  <h3>用一个具体例子走一遍</h3>
+  <p>假设内存里存着这样一条指令：<code>把内存 0010 号单元的数加到寄存器 R1 中</code>。</p>
+
+  <ol>
+    <li><strong>取指令</strong>：PC 里存着 <code>0100</code>，CPU 用 MAR 把地址送出去，内存把该地址的指令内容通过 MDR 送回 IR，同时 PC 自动 +1。</li>
+    <li><strong>译码</strong>：控制器一看，哦，这是一条"加法"指令，操作数在内存 0010 单元。</li>
+    <li><strong>执行</strong>：控制器指挥 ALU 把 R1 里的值和取来的数相加。</li>
+    <li><strong>访存</strong>：如果数据还在内存里，需要再去内存取一次。</li>
+    <li><strong>写回</strong>：把结果写回 R1，同时更新 PSW 状态标志。</li>
+  </ol>
+
+  <p>然后，重复下一轮。CPU 每秒可以重复<strong>几十亿次</strong>这样的循环。</p>
+
+  <div class="key">
+    <strong>记住这句：</strong>CPU 干的活 = <strong>取指 → 译码 → 执行</strong>，无限循环，直到关机。
+  </div>
+</section>
+
+<!-- ---------- 7 ---------- -->
+<section class="card" id="s7">
+  <h2><span class="num">7</span>数据在计算机里长什么样？</h2>
+
+  <p>计算机里的一切——文字、图片、视频、程序——最终都变成 <strong>0 和 1</strong>。每一位叫一个 <strong>bit（比特）</strong>，8 个 bit 组成一个 <strong>Byte（字节）</strong>。</p>
+
+  <h3>二进制转十进制</h3>
+  <p>以 <code>10110010</code> 为例，从右往左，每一位的权重是 2 的幂：</p>
+
+  <div class="bits">
+    <span class="bit one">1</span>
+    <span class="bit zero">0</span>
+    <span class="bit one">1</span>
+    <span class="bit one">1</span>
+    <span class="bit zero">0</span>
+    <span class="bit zero">0</span>
+    <span class="bit one">1</span>
+    <span class="bit zero">0</span>
+  </div>
+  <div class="bit-label">权重：128　64　32　16　8　4　2　1</div>
+
+  <p style="text-align:center;margin-top:18px;">
+    <code>1×128 + 0×64 + 1×32 + 1×16 + 0×8 + 0×4 + 1×2 + 0×1 = 178</code>
+  </p>
+
+  <h3>原码、反码、补码：负数怎么表示？</h3>
+  <p>正数好办，负数怎么办？人们想了很多办法。现代计算机统一使用<strong>补码</strong>。</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>数值</th><th>原码</th><th>反码</th><th>补码</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>+5</td><td><code>0000 0101</code></td><td><code>0000 0101</code></td><td><code>0000 0101</code></td></tr>
+      <tr><td>-5</td><td><code>1000 0101</code></td><td><code>1111 1010</code></td><td><code>1111 1011</code></td></tr>
+      <tr><td>+0</td><td><code>0000 0000</code></td><td><code>0000 0000</code></td><td><code>0000 0000</code></td></tr>
+      <tr><td>-0</td><td><code>1000 0000</code></td><td><code>1111 1111</code></td><td><code>0000 0000</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>规则很简单：</p>
+  <ul>
+    <li><strong>原码</strong>：最高位当符号位（0 正 1 负），其余位表示数值大小。</li>
+    <li><strong>反码</strong>：正数不变；负数符号位不变，其余位按位取反。</li>
+    <li><strong>补码</strong>：正数不变；负数 = 反码 + 1。</li>
+  </ul>
+
+  <div class="tip">
+    <strong>为什么用补码？</strong>因为用补码后，<strong>减法可以变成加法</strong>！比如算 5 − 3，直接算 5 + (−3) 的补码就行。这样 CPU 里只需要一个加法器，电路大大简化。<br>
+    顺便，补码还解决了"+0 和 −0 两个零"的尴尬问题。
+  </div>
+
+  <details>
+    <summary>想一想：8 位补码能表示多大的范围？</summary>
+    <p>n 位补码的范围是 −2ⁿ⁻¹ 到 2ⁿ⁻¹ − 1。8 位就是 <strong>−128 ~ +127</strong>。这也是为什么很多编程语言里 <code>byte</code> 类型的范围正好是 −128 到 127。</p>
+  </details>
+</section>
+
+<!-- ---------- 8 ---------- -->
+<section class="card" id="s8">
+  <h2><span class="num">8</span>怎么衡量一台计算机快不快？</h2>
+
+  <div class="grid">
+    <div class="mini">
+      <h4>主频</h4>
+      <p>CPU 时钟频率，如 3.5 GHz，表示每秒 35 亿个时钟周期。频率越高，节奏越快。</p>
+    </div>
+    <div class="mini">
+      <h4>CPI</h4>
+      <p>Cycles Per Instruction，执行一条指令平均需要的时钟周期数。越小越好。</p>
+    </div>
+    <div class="mini">
+      <h4>MIPS</h4>
+      <p>每秒执行多少百万条指令，衡量运算速度的常用单位。</p>
+    </div>
+    <div class="mini">
+      <h4>字长</h4>
+      <p>CPU 一次能处理的二进制位数，如 64 位。字长越大，一次能算的数据越多。</p>
+    </div>
+    <div class="mini">
+      <h4>存储容量</h4>
+      <p>内存和硬盘能装多少数据，单位 GB / TB。</p>
+    </div>
+    <div class="mini">
+      <h4>吞吐量</h4>
+      <p>单位时间内系统能完成的任务总量，反映整体处理能力。</p>
+    </div>
+  </div>
+
+  <div class="key">
+    <strong>核心公式：</strong><br>
+    程序执行时间 = 指令条数 × CPI × 时钟周期<br>
+    <span style="font-size:14px;color:#92400e;">
+      （指令条数由编译器和程序决定，CPI 由 CPU 结构决定，时钟周期由主频决定）
+    </span>
+  </div>
+
+  <p>所以，评价一台计算机不能只看主频。同样 3.0 GHz，如果 A 的 CPI 是 2，B 的 CPI 是 4，那么 A 大概快一倍。</p>
+</section>
+
+<!-- ---------- 9 ---------- -->
+<section class="card" id="s9">
+  <h2><span class="num">9</span>知识总结：一张图记住全部</h2>
+
+  <div class="tree">
+<span class="c1">计算机系统</span>
+├─ <span class="c2">硬件</span>
+│   ├─ 主机
+│   │   ├─ <span class="c3">CPU</span> = 运算器(ALU) + 控制器(CU) + 寄存器组 + Cache
+│   │   └─ 主存（内存）：按地址存取，断电即失
+│   └─ 外设
+│       ├─ 输入设备：键盘 / 鼠标 / 摄像头
+│       ├─ 输出设备：显示器 / 打印机
+│       └─ 外存：SSD / 硬盘（断电不丢）
+│
+├─ <span class="c2">软件</span>
+│   ├─ 系统软件：操作系统 / 编译器 / 驱动
+│   └─ 应用软件：浏览器 / 微信 / 游戏
+│
+└─ <span class="c2">连接纽带</span>
+    ├─ 总线：数据总线 + 地址总线 + 控制总线
+    └─ 工作方式：取指 → 译码 → 执行（无限循环）
+  </div>
+
+  <h3>三个必须记住的核心结论</h3>
+  <ol>
+    <li><strong>存储程序思想</strong>：程序和数据都放在内存里，用二进制表示，CPU 顺序取指执行。</li>
+    <li><strong>层次化存储</strong>：寄存器 → Cache → 主存 → 外存，用"速度换成本"，越靠近 CPU 越快越小越贵。</li>
+    <li><strong>总线连接一切</strong>：数据总线传数据、地址总线传地址、控制总线传命令，三者分工明确。</li>
+  </ol>
+
+  <div class="tip">
+    <strong>下一步学什么？</strong><br>
+    如果你已经理解了第一部分，可以继续进入第二部分的<strong>考研计算专项</strong>：<br>
+    ▸ 性能指标计算（CPI / MIPS / CPU 时间）<br>
+    ▸ 数据表示计算（IEEE 754 浮点数、补码运算）<br>
+    ▸ 存储系统计算（Cache 映射、虚拟存储器、TLB）<br>
+    ▸ 指令系统计算（扩展操作码、寻址范围）<br>
+    ▸ 流水线计算（吞吐率、加速比、效率）<br>
+    ▸ 总线与 I/O 计算（带宽、DMA 传送时间）
+  </div>
+</section>
+
+
+<!-- ================= 第二部分：考研计算专项 ================= -->
+
+<div class="section-divider"><span class="red">第二部分　考研 408 计算专项全解</span></div>
+
+<!-- ---------- K1 考情分析 ---------- -->
+<section class="card exam-card" id="k1">
+  <h2><span class="num exam-num">考</span>考研计组考什么？——章节重点与分值分布</h2>
+
+  <p>408 统考中，计算机组成原理占 <strong>45 分</strong>，是四门课中难度最大的一门。下面按章节梳理核心考点与常考计算题型。</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th style="width:170px">章节</th><th>核心考点</th><th style="width:250px">常考计算题型</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>第1章 系统概述</strong></td>
+        <td>冯·诺依曼结构、性能指标</td>
+        <td>CPI、MIPS、CPU 执行时间</td>
+      </tr>
+      <tr>
+        <td><strong>第2章 数据表示与运算</strong></td>
+        <td>原码/反码/补码/移码、IEEE 754</td>
+        <td>浮点数转换、补码加减与溢出判断</td>
+      </tr>
+      <tr>
+        <td><strong>第3章 存储系统</strong></td>
+        <td>Cache 映射、虚拟存储器、TLB</td>
+        <td>Cache 地址划分、命中率、平均访问时间</td>
+      </tr>
+      <tr>
+        <td><strong>第4章 指令系统</strong></td>
+        <td>寻址方式、扩展操作码</td>
+        <td>寻址范围计算、指令条数计算</td>
+      </tr>
+      <tr>
+        <td><strong>第5章 CPU</strong></td>
+        <td>指令周期、流水线</td>
+        <td>流水线周期、吞吐率、加速比</td>
+      </tr>
+      <tr>
+        <td><strong>第6章 总线</strong></td>
+        <td>总线仲裁、定时</td>
+        <td>总线带宽计算</td>
+      </tr>
+      <tr>
+        <td><strong>第7章 I/O</strong></td>
+        <td>中断、DMA</td>
+        <td>DMA 传送时间计算</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="exam-tip">
+    <strong>📌 根据近年考情：</strong><br>
+    三大核心考点几乎年年出题：<br>
+    ① <strong>数据表示</strong>（IEEE 754 浮点数）<br>
+    ② <strong>存储系统</strong>（Cache 映射、虚拟存储器）<br>
+    ③ <strong>CPU 数据通路与流水线</strong><br>
+    其中 <strong>Cache 相关计算</strong>是高频应用题，需掌握主存地址拆分（标记位、组号、块号、块内地址）与平均访问时间的计算。
+  </div>
+</section>
+
+<!-- ---------- K2 性能指标计算 ---------- -->
+<section class="card exam-card" id="k2">
+  <h2><span class="num exam-num">计</span>性能指标计算<span class="freq-tag freq-high">高频</span></h2>
+
+  <p>这是每年选择题的"送分题"，但公式必须记牢。</p>
+
+  <h3>核心公式</h3>
+
+  <div class="formula">
+    <span class="f-title">CPU 执行时间</span>
+    <span class="f-main">CPU 时间 = 指令条数 × CPI × 时钟周期 = 指令条数 × CPI ÷ 主频</span>
+  </div>
+
+  <div class="formula">
+    <span class="f-title">MIPS（每秒百万条指令）</span>
+    <span class="f-main">MIPS = 主频 ÷ (CPI × 10⁶)</span>
+    <span class="f-note">注意：主频单位是 Hz；若题目给 GHz，需换算成 10⁹ Hz</span>
+  </div>
+
+  <div class="formula">
+    <span class="f-title">平均 CPI</span>
+    <span class="f-main">平均 CPI = Σ(各类指令占比 × 该类 CPI)</span>
+    <span class="f-note">占比用小数表示，不是百分数</span>
+  </div>
+
+  <div class="example">
+    <span class="e-title">例题 1</span>
+    <div class="e-q">
+      计算机 M 的主频为 2GHz，程序 P 包含 10⁸ 条指令，平均 CPI 为 1.5。求 CPU 执行时间和 MIPS。
+    </div>
+    <div class="e-a">
+      <ul class="e-step">
+        <li>CPU 执行时间 = 10⁸ × 1.5 ÷ (2 × 10⁹) = 0.075 秒 = <strong>75 ms</strong></li>
+        <li>MIPS = 2 × 10⁹ ÷ (1.5 × 10⁶) ≈ <strong>1333</strong></li>
       </ul>
-      <div class="note">
-        <strong>心态提示：</strong>你已经有「程序 = 数据 + 指令」的概念，这比零基础快很多。汇编的学习曲线主要来自「细节多、需要记寄存器」，而不是「概念难」。把它当成一门新的、更啰嗦的、但更诚实的语言即可。
-      </div>
-    </section>
+    </div>
+  </div>
 
-    <!-- ---------- 1 ---------- -->
-    <section id="res">
-      <h2><span class="num">1</span>推荐资源（两本，一读一练）</h2>
-
-      <h3 id="res1">① 王爽《汇编语言》在线笔记 —— 用来「读」</h3>
-      <p>国内最经典的汇编入门教材的在线 HTML 版本，章节结构与原书完全对应，打开浏览器即可阅读，无需下载。</p>
-      <div class="cards">
-        <div class="card">
-          <h4>内容覆盖</h4>
-          <ul>
-            <li>基础知识与 CPU 组成</li>
-            <li>寄存器与内存访问</li>
-            <li>程序段与 <code>CS:IP</code></li>
-            <li>转移指令、<code>CALL</code>/<code>RET</code></li>
-            <li>标志寄存器与条件跳转</li>
-            <li>BIOS 键盘输入、磁盘读写</li>
-          </ul>
-        </div>
-        <div class="card">
-          <h4>为什么选它</h4>
-          <p>它刻意屏蔽了过多硬件细节，抽象出一个简洁的编程模型：先让你明白「CPU 在干什么」，再逐步深入寄存器和内存操作。</p>
-          <p>对前端开发者来说，这种<strong>先建立心智模型、再补细节</strong>的方式，比直接啃 Intel 手册友好得多。</p>
-          <a class="link" href="https://www.yuque.com/jinsizongzi/zsrdft" target="_blank" rel="noopener">https://www.yuque.com/jinsizongzi/zsrdft</a>
-        </div>
-      </div>
-
-      <h3 id="res2">② GitHub x86 汇编 18 课 —— 用来「写」</h3>
-      <p>提供 18 课完整的 x86 汇编代码，从 <code>00_零基础入门.asm</code> 开始，每课一个独立 <code>.asm</code> 文件。</p>
+  <div class="example">
+    <span class="e-title">例题 2（指令混合）</span>
+    <div class="e-q">
+      某程序指令构成如下，求平均 CPI。
+      <div class="table-wrap" style="margin-top:10px;">
       <table>
-        <thead>
-          <tr><th>阶段</th><th>课程</th><th>核心内容</th></tr>
-        </thead>
+        <thead><tr><th>指令类型</th><th>占比</th><th>CPI</th></tr></thead>
         <tbody>
-          <tr>
-            <td>基础篇</td>
-            <td>00 – 06</td>
-            <td>寄存器详解、数据定义与内存、传送指令、算术运算、逻辑与位运算、比较跳转、循环结构</td>
-          </tr>
-          <tr>
-            <td>进阶篇</td>
-            <td>07 – 13</td>
-            <td>栈与函数调用、字符串操作、浮点运算、中断与系统调用</td>
-          </tr>
-          <tr>
-            <td>实战篇</td>
-            <td>14 – 17</td>
-            <td>Shellcode 编写、栈溢出原理、逆向分析</td>
-          </tr>
+          <tr><td>算术逻辑</td><td>40%</td><td>1</td></tr>
+          <tr><td>Load/Store</td><td>30%</td><td>2</td></tr>
+          <tr><td>分支</td><td>20%</td><td>3</td></tr>
+          <tr><td>其他</td><td>10%</td><td>4</td></tr>
         </tbody>
       </table>
-      <p>课程说明里有一句话点得很准：<em>“学汇编不是为了用它写业务系统，而是为了真正理解计算机在底层到底在干什么。”</em></p>
-      <a class="link" href="https://github.com/7G-one/x86-Assembly-from-Hello-World-to-Reverse-Engineering-A-Security-Focused-Course" target="_blank" rel="noopener">https://github.com/7G-one/x86-Assembly-from-Hello-World-to-Reverse-Engineering-A-Security-Focused-Course</a>
-
-      <div class="tip">
-        <strong>组合用法：</strong>王爽的笔记负责「系统通读」，GitHub 课程负责「动手实践」。读一章，写一课，交替推进，效果远好于单独啃其中一个。
       </div>
-    </section>
+    </div>
+    <div class="e-a">
+      平均 CPI = 0.4×1 + 0.3×2 + 0.2×3 + 0.1×4 = 0.4 + 0.6 + 0.6 + 0.4 = <strong>2.0</strong>
+    </div>
+  </div>
+</section>
 
-    <!-- ---------- 2 ---------- -->
-    <section id="path">
-      <h2><span class="num">2</span>学习路径（按周推进）</h2>
+<!-- ---------- K3 数据表示与运算计算 ---------- -->
+<section class="card exam-card" id="k3">
+  <h2><span class="num exam-num">计</span>数据表示与运算计算<span class="freq-tag freq-high">必考</span></h2>
 
-      <div class="timeline">
-        <div class="step">
-          <span class="week">第 1 周</span>
-          <h4>建立基础模型</h4>
-          <p>读王爽笔记前 4 章：CPU 组成、寄存器作用、内存访问方式。</p>
-          <p>读到「栈帧」「局部变量」时，主动联想 Java 的栈帧与局部变量表——很多概念是相通的，区别只是汇编层面要<strong>手动操作</strong>。</p>
-        </div>
+  <h3>3.1 补码与原码的范围</h3>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>编码</th><th>8 位范围</th><th>特点</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>原码</td><td>−127 ~ +127</td><td>两个零（+0 和 −0）</td></tr>
+      <tr><td>反码</td><td>−127 ~ +127</td><td>两个零</td></tr>
+      <tr><td>补码</td><td>−128 ~ +127</td><td>唯一零，减法变加法</td></tr>
+      <tr><td>移码</td><td>−128 ~ +127</td><td>用于浮点数阶码</td></tr>
+    </tbody>
+  </table>
+  </div>
 
-        <div class="step">
-          <span class="week">第 2 周</span>
-          <h4>开始写代码</h4>
-          <p>做 GitHub 课程的 <code>00</code> – <code>06</code> 课，逐课动手，用 NASM 汇编器把 <code>.asm</code> 编译成可执行文件。</p>
-          <p>前端开发者对「编译 → 运行」的反馈循环应该很熟悉，只是这里从 <code>npm run build</code> 换成了 NASM 的两条命令。</p>
-        </div>
+  <div class="formula">
+    <span class="f-title">n 位补码表示范围</span>
+    <span class="f-main">−2ⁿ⁻¹ ~ 2ⁿ⁻¹ − 1</span>
+  </div>
 
-        <div class="step">
-          <span class="week">第 3 周起</span>
-          <h4>深入栈帧与函数调用</h4>
-          <p>做 <code>07</code> – <code>13</code> 课，重点吃透 <code>CALL</code>/<code>RET</code> 与栈帧结构。</p>
-          <p>如果你的目标只是理解 Java 方法调用的底层实现，把 08 – 09 课彻底搞懂就够了，不必强行往后推。</p>
-        </div>
+  <h3>3.2 补码加减运算与溢出判断</h3>
 
-        <div class="step">
-          <span class="week">进阶方向</span>
-          <h4>按兴趣分叉</h4>
-          <p><strong>安全方向：</strong>14 – 17 课的逆向分析与 Shellcode 会非常有意思。</p>
-          <p><strong>工程方向：</strong>研究编译器优化、内联汇编、SIMD 指令，配合 C/C++ 看生成的汇编。</p>
-        </div>
-      </div>
+  <p><strong>规则</strong>：符号位与数值位一起参与运算，符号位产生的进位丢弃。</p>
 
-      <div class="note">
-        <strong>节奏建议：</strong>每天 40 分钟，比周末突击 5 小时有效得多。汇编的难点在于「细节记忆」，需要频繁接触来形成肌肉记忆。
-      </div>
-    </section>
+  <div class="formula">
+    <span class="f-title">双符号位溢出判断</span>
+    <span class="f-main">结果两位符号位相同 → 无溢出；不同（01 或 10）→ 溢出</span>
+    <span class="f-note">01 表示正溢出（上溢），10 表示负溢出（下溢）</span>
+  </div>
 
-    <!-- ---------- 3 ---------- -->
-    <section id="env">
-      <h2><span class="num">3</span>环境搭建（Linux / macOS / WSL）</h2>
-      <p>推荐使用 <strong>NASM + ld</strong> 的组合，体积小、语法清晰、贴近王爽教材中的写法。</p>
-
-      <h4>安装</h4>
-      <pre><code><span class="cmt"># Ubuntu / Debian / WSL</span>
-sudo apt update
-sudo apt install nasm binutils gdb
-
-<span class="cmt"># macOS（Homebrew）</span>
-brew install nasm
-<span class="cmt"># macOS 上链接需要处理平台差异，初学建议用 Linux / WSL / Docker</span>
-
-<span class="cmt"># 验证</span>
-nasm -v
-ld -v
-gdb --version</code></pre>
-
-      <h4>编译与链接（64 位 ELF）</h4>
-      <pre><code><span class="cmt"># 1. 汇编：.asm -> .o</span>
-nasm -f elf64 hello.asm -o hello.o
-
-<span class="cmt"># 2. 链接：.o -> 可执行文件</span>
-ld hello.o -o hello
-
-<span class="cmt"># 3. 运行</span>
-./hello</code></pre>
-
-      <h4>常用调试命令</h4>
-      <pre><code><span class="cmt"># 启动 GDB</span>
-gdb ./hello
-
-<span class="cmt"># GDB 内常用指令</span>
-(gdb) layout asm        <span class="cmt"># 显示反汇编窗口</span>
-(gdb) layout regs       <span class="cmt"># 显示寄存器窗口</span>
-(gdb) break _start      <span class="cmt"># 在入口下断点</span>
-(gdb) run               <span class="cmt"># 运行</span>
-(gdb) si                <span class="cmt"># 单步执行一条指令（step instruction）</span>
-(gdb) info registers    <span class="cmt"># 查看所有寄存器</span>
-(gdb) x/8xb $rsp        <span class="cmt"># 以十六进制查看栈顶 8 字节</span></code></pre>
-
-      <div class="tip">
-        <strong>Windows 用户：</strong>直接装 WSL2（<code>wsl --install</code>），在 Ubuntu 环境里操作最省心。纯 Windows 下可用 MASM + Visual Studio，但语法与 NASM 有差异，初学容易混淆，不推荐。
-      </div>
-    </section>
-
-    <!-- ---------- 4 ---------- -->
-    <section id="first">
-      <h2><span class="num">4</span>第一个程序：Hello World</h2>
-      <p>下面是一个纯系统调用（不依赖 libc）的 64 位 Linux 汇编程序，可以直接用上面的命令编译运行。</p>
-
-      <pre><code><span class="cmt">; hello.asm —— 64 位 Linux，NASM 语法</span>
-<span class="kw">section</span> .data
-    msg     <span class="kw">db</span>  <span class="num">"Hello, Assembly!", 10</span>   <span class="cmt">; 10 是换行符 \n</span>
-    msg_len <span class="kw">equ</span> $ - msg
-
-<span class="kw">section</span> .text
-    <span class="kw">global</span> _start
-
-_start:
-    <span class="cmt">; write(1, msg, msg_len)</span>
-    <span class="kw">mov</span> <span class="reg">rax</span>, <span class="num">1</span>          <span class="cmt">; 系统调用号 1 = write</span>
-    <span class="kw">mov</span> <span class="reg">rdi</span>, <span class="num">1</span>          <span class="cmt">; 参数1：文件描述符 1 = stdout</span>
-    <span class="kw">mov</span> <span class="reg">rsi</span>, msg        <span class="cmt">; 参数2：缓冲区地址</span>
-    <span class="kw">mov</span> <span class="reg">rdx</span>, msg_len    <span class="cmt">; 参数3：长度</span>
-    <span class="kw">syscall</span>              <span class="cmt">; 触发系统调用</span>
-
-    <span class="cmt">; exit(0)</span>
-    <span class="kw">mov</span> <span class="reg">rax</span>, <span class="num">60</span>         <span class="cmt">; 系统调用号 60 = exit</span>
-    <span class="kw">xor</span> <span class="reg">rdi</span>, <span class="reg">rdi</span>        <span class="cmt">; 参数：退出码 0（xor 自己比 mov 0 更快更短）</span>
-    <span class="kw">syscall</span></code></pre>
-
-      <h4>几个值得注意的点</h4>
-      <ul>
-        <li><code>_start</code> 是链接器默认的入口，相当于 C 的 <code>main</code>。不写 libc 时不需要 <code>main</code>。</li>
-        <li>系统调用参数顺序是 <code>rdi, rsi, rdx, r10, r8, r9</code>，和普通函数调用的 <code>rdi, rsi, rdx, rcx, r8, r9</code> 差一位（<code>rcx</code> 被 <code>syscall</code> 指令本身占用）。</li>
-        <li><code>xor rdi, rdi</code> 是汇编里的经典技巧：清零且比 <code>mov rdi, 0</code> 少一个字节。</li>
-        <li><code>section .data</code> 存已初始化的全局数据，<code>section .text</code> 存代码。这和你熟悉的「数据段 / 代码段」概念一致。</li>
+  <div class="example">
+    <span class="e-title">例题</span>
+    <div class="e-q">
+      用 8 位补码计算 (−95) + (−58)，判断是否溢出。
+    </div>
+    <div class="e-a">
+      <ul class="e-step">
+        <li>−95 补码：<code>10100001</code></li>
+        <li>−58 补码：<code>11000110</code></li>
+        <li>相加：<code>10100001 + 11000110 = 1 01100111</code>，丢弃最高进位 → <code>01100111</code> = +103</li>
+        <li><strong>判断</strong>：两个负数相加结果为正数，<strong>溢出</strong>。实际结果应为 −153，超出 8 位补码范围（−128~+127）。</li>
       </ul>
-    </section>
+    </div>
+  </div>
 
-    <!-- ---------- 5 ---------- -->
-    <section id="map">
-      <h2><span class="num">5</span>Java / JS 概念对照速查</h2>
-      <p>用你已经掌握的概念做锚点，能大幅降低记忆负担。</p>
+  <h3>3.3 IEEE 754 浮点数<span class="star">★★★★★</span></h3>
 
-      <table>
-        <thead>
-          <tr><th>你熟悉的</th><th>汇编层面的对应</th><th>说明</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>变量</td>
-            <td>寄存器 / 内存单元</td>
-            <td>没有「变量名」，只有地址和寄存器编号</td>
-          </tr>
-          <tr>
-            <td>赋值 <code>a = 1</code></td>
-            <td><code>mov eax, 1</code></td>
-            <td>把立即数搬进寄存器</td>
-          </tr>
-          <tr>
-            <td>数组访问 <code>arr[i]</code></td>
-            <td><code>mov eax, [ebx + esi*4]</code></td>
-            <td>基址 + 变址 × 元素大小，一条指令搞定</td>
-          </tr>
-          <tr>
-            <td><code>if / else</code></td>
-            <td><code>cmp</code> + <code>jcc</code></td>
-            <td>先比较（设置标志位），再条件跳转</td>
-          </tr>
-          <tr>
-            <td><code>for</code> / <code>while</code></td>
-            <td><code>cmp</code> + <code>jmp</code> 回跳</td>
-            <td>循环就是「向前跳转」，没有更神奇的机制</td>
-          </tr>
-          <tr>
-            <td>方法调用 <code>foo()</code></td>
-            <td><code>call foo</code></td>
-            <td>把返回地址压栈，然后跳到目标地址</td>
-          </tr>
-          <tr>
-            <td><code>return</code></td>
-            <td><code>ret</code></td>
-            <td>从栈里弹出返回地址，跳回去</td>
-          </tr>
-          <tr>
-            <td>局部变量</td>
-            <td><code>[ebp - 4]</code> 之类的栈内存</td>
-            <td>栈帧的一部分，函数返回时自动「消失」</td>
-          </tr>
-          <tr>
-            <td>返回值</td>
-            <td><code>eax</code> / <code>rax</code></td>
-            <td>约定俗成放在累加器里</td>
-          </tr>
-          <tr>
-            <td>异常 / 信号</td>
-            <td>中断 <code>int 0x80</code> / <code>syscall</code></td>
-            <td>主动或被动地陷入内核态</td>
-          </tr>
-        </tbody>
-      </table>
+  <p><strong>单精度 32 位格式</strong>：</p>
 
-      <h4>常用寄存器一览（x86-64）</h4>
-      <table>
-        <thead>
-          <tr><th>寄存器</th><th>传统用途</th><th>类比</th></tr>
-        </thead>
-        <tbody>
-          <tr><td><code>rax</code></td><td>累加器，函数返回值、系统调用号</td><td>方法的返回值槽</td></tr>
-          <tr><td><code>rbx</code></td><td>基址寄存器，被调用者保存</td><td>需要手动保护的变量</td></tr>
-          <tr><td><code>rcx</code></td><td>计数器，循环常用</td><td>循环索引 <code>i</code></td></tr>
-          <tr><td><code>rdx</code></td><td>数据寄存器，乘除法、第三参数</td><td>辅助计算槽</td></tr>
-          <tr><td><code>rsi</code> / <code>rdi</code></td><td>源/目标索引，函数第 2、1 参数</td><td>参数位</td></tr>
-          <tr><td><code>rsp</code></td><td>栈指针，永远指向栈顶</td><td>JVM 的操作数栈顶指针</td></tr>
-          <tr><td><code>rbp</code></td><td>栈基址，函数栈帧的锚点</td><td>栈帧起始位置</td></tr>
-          <tr><td><code>rip</code></td><td>指令指针，下一条要执行的指令地址</td><td>程序计数器 PC</td></tr>
-        </tbody>
-      </table>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>符号位 S</th><th>阶码 E</th><th>尾数 M</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1 位</td><td>8 位（偏移量 127）</td><td>23 位</td></tr>
+    </tbody>
+  </table>
+  </div>
 
-      <div class="note">
-        <strong>命名规律：</strong><code>rax</code> 是 64 位，<code>eax</code> 是低 32 位，<code>ax</code> 是低 16 位，<code>al</code> 是低 8 位。它们<strong>共享同一块物理存储</strong>，写 <code>eax</code> 会清零 <code>rax</code> 的高 32 位。这个细节在调试时经常踩坑。
-      </div>
-    </section>
+  <p><strong>双精度 64 位</strong>：1 位符号 + 11 位阶码（偏移量 1023）+ 52 位尾数</p>
 
-    <!-- ---------- 6 ---------- -->
-    <section id="stack">
-      <h2><span class="num">6</span>重点章节：栈帧与函数调用</h2>
-      <p>这是最值得反复咀嚼的一节，也是汇编和 Java 关联最紧密的地方。</p>
+  <div class="formula">
+    <span class="f-title">IEEE 754 真值公式</span>
+    <span class="f-main">V = (−1)^S × 1.M × 2^(E−127)</span>
+    <span class="f-note">尾数隐含整数部分的"1."，这是 IEEE 754 的关键设计</span>
+  </div>
 
-      <h4>一个标准的函数序言与尾声</h4>
-      <pre><code><span class="cmt">; 调用方</span>
-<span class="kw">push</span> <span class="num">2</span>              <span class="cmt">; 第二个参数入栈（32 位 cdecl 约定）</span>
-<span class="kw">push</span> <span class="num">1</span>              <span class="cmt">; 第一个参数入栈</span>
-<span class="kw">call</span> add            <span class="cmt">; 压入返回地址并跳转</span>
-<span class="kw">add</span>  <span class="reg">esp</span>, <span class="num">8</span>         <span class="cmt">; 调用方负责清理参数（cdecl）</span>
-
-<span class="cmt">; 被调用函数</span>
-add:
-    <span class="kw">push</span> <span class="reg">ebp</span>            <span class="cmt">; 序言①：保存调用方的栈基址</span>
-    <span class="kw">mov</span>  <span class="reg">ebp</span>, <span class="reg">esp</span>       <span class="cmt">; 序言②：建立自己的栈帧锚点</span>
-
-    <span class="kw">mov</span>  <span class="reg">eax</span>, [<span class="reg">ebp</span>+<span class="num">8</span>]    <span class="cmt">; 取第一个参数</span>
-    <span class="kw">add</span>  <span class="reg">eax</span>, [<span class="reg">ebp</span>+<span class="num">12</span>]   <span class="cmt">; 加上第二个参数</span>
-
-    <span class="kw">pop</span>  <span class="reg">ebp</span>            <span class="cmt">; 尾声①：恢复调用方的栈基址</span>
-    <span class="kw">ret</span>                 <span class="cmt">; 尾声②：弹出返回地址并跳回</span></code></pre>
-
-      <h4>调用瞬间的栈布局</h4>
-      <pre><code>高地址
-  ┌──────────────┐
-  │  参数 2       │  [ebp + 12]
-  ├──────────────┤
-  │  参数 1       │  [ebp + 8]
-  ├──────────────┤
-  │  返回地址     │  [ebp + 4]   ← call 指令自动压入
-  ├──────────────┤
-  │  旧的 ebp     │  [ebp + 0]   ← push ebp 压入，ebp 指向这里
-  ├──────────────┤ ← ebp（栈基址）
-  │  局部变量     │  [ebp - 4]
-  ├──────────────┤
-  │  ...          │
-  └──────────────┘ ← esp（栈顶，随 push/pop 移动）
-低地址</code></pre>
-
-      <div class="tip">
-        <strong>和 Java 的对应：</strong>JVM 规范里每个方法调用都会创建一个栈帧，包含局部变量表和操作数栈。HotSpot 在实际执行时，会把能放进寄存器的值放寄存器，放不下的才溢出到栈上——但<strong>逻辑模型和上面的汇编栈帧完全一致</strong>。搞懂这张图，你就搞懂了 JVM 栈帧的物理原型。
-      </div>
-    </section>
-
-    <!-- ---------- 7 ---------- -->
-    <section id="faq">
-      <h2><span class="num">7</span>常见问题</h2>
-
-      <h4>Q1：应该学 32 位还是 64 位？</h4>
-      <p>建议<strong>先学 32 位建立概念，再过渡到 64 位</strong>。王爽教材是 16 位（8086），概念最纯粹，但实用性低。折中方案：用王爽的书理解「寄存器、内存寻址、栈、中断」这些核心概念，实际操作时用 64 位 NASM。</p>
-
-      <h4>Q2：AT&amp;T 语法和 Intel 语法选哪个？</h4>
-      <table>
-        <thead><tr><th></th><th>Intel 语法（NASM）</th><th>AT&amp;T 语法（GAS）</th></tr></thead>
-        <tbody>
-          <tr><td>操作数顺序</td><td><code>mov dest, src</code></td><td><code>mov src, dest</code></td></tr>
-          <tr><td>寄存器前缀</td><td>无：<code>eax</code></td><td><code>%</code>：<code>%eax</code></td></tr>
-          <tr><td>立即数前缀</td><td>无：<code>1</code></td><td><code>$</code>：<code>$1</code></td></tr>
-          <tr><td>可读性</td><td>较好</td><td>较差，但 <code>objdump</code> 默认输出</td></tr>
-        </tbody>
-      </table>
-      <p><strong>建议：</strong>学习用 Intel 语法（NASM），但必须能读懂 AT&amp;T，因为反汇编工具默认输出它。GDB 里可以用 <code>set disassembly-flavor intel</code> 切换。</p>
-
-      <h4>Q3：需要先学 C 语言吗？</h4>
-      <p>不需要，但有 C 基础会更顺。你已有 Java 基础，理解指针和内存地址时稍微多花点时间即可。汇编本身不依赖任何高级语言。</p>
-
-      <h4>Q4：学完能做什么？</h4>
-      <ul>
-        <li>读懂 <code>javap -c</code> 之外的更底层信息，理解 JIT 编译产物</li>
-        <li>用 GDB 调试 C/C++ 扩展、排查 Native 崩溃</li>
-        <li>入门逆向工程与漏洞分析</li>
-        <li>写性能敏感的 SIMD 代码（图像、音视频处理）</li>
-        <li>理解操作系统、编译原理课程中的抽象概念</li>
+  <h4>类型 1：十进制 → IEEE 754</h4>
+  <div class="example">
+    <span class="e-title">例题</span>
+    <div class="e-q">
+      将 37.25 转换为 IEEE 754 单精度格式。
+    </div>
+    <div class="e-a">
+      <ul class="e-step">
+        <li>转二进制：37.25 = <code>100101.01</code></li>
+        <li>规格化：<code>1.0010101 × 2⁵</code></li>
+        <li>符号位 S = 0（正数）</li>
+        <li>阶码 E = 5 + 127 = 132 = <code>10000100</code></li>
+        <li>尾数 M = <code>00101010000000000000000</code>（去掉隐含的 1）</li>
+        <li><strong>结果</strong>：<code>0 10000100 00101010000000000000000</code> = <strong>42150000H</strong></li>
       </ul>
+    </div>
+  </div>
 
-      <h4>Q5：学多久算入门？</h4>
-      <p>以每天 40 分钟计，<strong>3–4 周</strong>可以建立基本认知，能读懂简单的反汇编；<strong>2–3 个月</strong>可以独立写出带函数调用和循环的小程序。</p>
-    </section>
+  <h4>类型 2：IEEE 754 → 十进制</h4>
+  <div class="example">
+    <span class="e-title">例题</span>
+    <div class="e-q">
+      某浮点数十六进制表示为 C6400000H，求其十进制值。
+    </div>
+    <div class="e-a">
+      <ul class="e-step">
+        <li>转二进制：<code>1100 0110 0100 0000 0000 0000 0000 0000</code></li>
+        <li>拆分：S=1（负数），E=<code>10001100</code>=140，M=<code>10000000000000000000000</code></li>
+        <li>阶码真值 = 140 − 127 = 13</li>
+        <li>尾数 = 1.1000...0（隐含 1 + M）</li>
+        <li>真值 = −1.1₂ × 2¹³ = −(1 + 0.5) × 8192 = <strong>−12288</strong></li>
+      </ul>
+    </div>
+  </div>
 
-    <!-- ---------- 8 ---------- -->
-    <section id="checklist">
-      <h2><span class="num">8</span>自检清单</h2>
-      <p>每完成一项就打勾，确保学习没有留下结构性空洞。</p>
-      <table>
-        <thead>
-          <tr><th style="width:50px;">✓</th><th>能力项</th><th>验证方式</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>☐</td><td>说清 CPU、内存、寄存器三者的关系</td><td>能画出取指—译码—执行循环</td></tr>
-          <tr><td>☐</td><td>掌握常用寄存器及其位宽拆分</td><td>能解释 <code>rax</code>/<code>eax</code>/<code>ax</code>/<code>al</code> 的关系</td></tr>
-          <tr><td>☐</td><td>能写出多种内存寻址方式</td><td>基址、变址、比例变址各写一条</td></tr>
-          <tr><td>☐</td><td>独立编译运行一个汇编程序</td><td>NASM + ld，看到 Hello World 输出</td></tr>
-          <tr><td>☐</td><td>用条件跳转实现 if / else</td><td>比较两数大小并分支</td></tr>
-          <tr><td>☐</td><td>用跳转实现循环</td><td>求和 1 到 100</td></tr>
-          <tr><td>☐</td><td>手写一个带参数和返回值的函数</td><td>实现 <code>add(a, b)</code></td></tr>
-          <tr><td>☐</td><td>画出一次函数调用的完整栈帧图</td><td>标注 <code>ebp</code>、<code>esp</code>、返回地址位置</td></tr>
-          <tr><td>☐</td><td>用 GDB 单步跟踪并观察寄存器变化</td><td>能解释每一步 <code>si</code> 后寄存器的值</td></tr>
-          <tr><td>☐</td><td>读懂 <code>objdump -d</code> 的输出</td><td>找到自己写的函数的反汇编</td></tr>
-          <tr><td>☐</td><td>理解系统调用与中断的区别</td><td>说清 <code>syscall</code> 与 <code>int 0x80</code> 的差异</td></tr>
-          <tr><td>☐</td><td>能解释栈溢出的原理</td><td>说明返回地址是如何被覆盖的</td></tr>
-        </tbody>
-      </table>
-    </section>
+  <h4>类型 3：浮点数加减运算</h4>
+  <p><strong>五步法</strong>（必须按顺序）：</p>
+  <ol>
+    <li><strong>对阶</strong>：小阶向大阶看齐，尾数右移（移动阶差位数）</li>
+    <li><strong>尾数加减</strong>：按定点数规则运算</li>
+    <li><strong>规格化</strong>：若尾数溢出则右规（右移 1 位，阶码 +1）；若尾数首位与符号位相同则左规</li>
+    <li><strong>舍入</strong>：0 舍 1 入法或恒置 1 法</li>
+    <li><strong>溢出判断</strong>：阶码是否超出范围</li>
+  </ol>
 
-  </main>
-</div>
+  <div class="example">
+    <span class="e-title">例题</span>
+    <div class="e-q">
+      x = 0.1101 × 2¹⁰，y = 0.1011 × 2⁰¹，阶码和尾数均为 4 位，求 x+y。
+    </div>
+    <div class="e-a">
+      <ul class="e-step">
+        <li><strong>① 对阶</strong>：阶差 = 10 − 01 = 1（十进制），x 阶码大，y 尾数右移 1 位：y 尾数变为 0.01011</li>
+        <li><strong>② 尾数相加</strong>：0.1101 + 0.01011 = 1.00101，溢出，需右规</li>
+        <li><strong>③ 右规</strong>：尾数右移 1 位 → 0.100101，阶码 +1 → 10+1 = 11</li>
+        <li><strong>④ 舍入</strong>（尾数 4 位）：0.1001 | 01，0 舍 1 入 → 0.1010</li>
+        <li><strong>结果</strong>：<strong>0.1010 × 2¹¹</strong></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- K4 存储系统计算 ---------- -->
+<section class="card exam-card" id="k4">
+  <h2><span class="num exam-num">计</span>存储系统计算<span class="freq-tag freq-high">高频应用题</span></h2>
+
+  <h3>4.1 Cache 地址划分（核心中的核心）</h3>
+
+  <p>主存地址根据映射方式拆分为不同字段：</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>映射方式</th><th>地址划分</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>直接映射</td><td>标记 + 行号 + 块内地址</td></tr>
+      <tr><td>全相联映射</td><td>标记 + 块内地址</td></tr>
+      <tr><td>组相联映射</td><td>标记 + 组号 + 块内地址</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="formula">
+    <span class="f-title">Cache 地址字段计算</span>
+    <span class="f-main">
+      块内地址位数 = log₂(块大小)<br>
+      组号位数 = log₂(Cache 组数) = log₂(Cache 总块数 ÷ 每组块数)<br>
+      标记位数 = 主存地址位数 − 组号位数 − 块内地址位数
+    </span>
+  </div>
+
+  <div class="example">
+    <span class="e-title">例题</span>
+    <div class="e-q">
+      主存地址空间 64KB，Cache 数据区 4KB，块大小 32B，采用 4 路组相联。求主存地址各字段位数。
+    </div>
+    <div class="e-a">
+      <ul class="e-step">
+        <li>主存地址：<strong>16 位</strong>（64KB = 2¹⁶）</li>
+        <li>块内地址：log₂32 = <strong>5 位</strong></li>
+        <li>Cache 总块数 = 4KB ÷ 32B = 128 块</li>
+        <li>Cache 组数 = 128 ÷ 4 = 32 组</li>
+        <li>组号：log₂32 = <strong>5 位</strong></li>
+        <li>标记：16 − 5 − 5 = <strong>6 位</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <p>地址字段可视化：</p>
+  <div class="addr-fields">
+    <div class="af af-tag">
+      <span class="af-title">标记</span>
+      <span class="af-sub">6 位</span>
+    </div>
+    <div class="af af-set">
+      <span class="af-title">组号</span>
+      <span class="af-sub">5 位</span>
+    </div>
+    <div class="af af-block">
+      <span class="af-title">块内地址</span>
+      <span class="af-sub">5 位</span>
+    </div>
+  </div>
+
+  <h3>4.2 Cache 命中率与平均访问时间</h3>
+
+  <div class="formula">
+    <span class="f-title">命中率</span>
+    <span class="f-main">H = 命中次数 ÷ 总访问次数</span>
+  </div>
+
+  <div class="formula">
+    <span class="f-title">平均访问时间（两种情形）</span>
+    <span class="f-main">
+      不并行：Ta = H × Tc + (1−H) × Tm<br>
+      先访 Cache 再访主存（串行）：Ta = Tc + (1−H) × Tm
+    </span>
+    <span class="f-note">Tc = Cache 访问时间，Tm = 主存访问时间</span>
+  </div>
+
+  <div class="example">
+    <span class="e-title">例题</span>
+    <div class="e-q">
+      程序访存 1000 次，未命中 50 次。Cache 访问时间 1ns，主存访问时间 50ns（缺失时先访 Cache 再访主存）。求平均访问时间。
+    </div>
+    <div class="e-a">
+      <ul class="e-step">
+        <li>命中率 H = 950 ÷ 1000 = 0.95</li>
+        <li>平均访问时间 = 0.95 × 1 + 0.05 × (1 + 50) = 0.95 + 2.55 = <strong>3.5 ns</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>4.3 虚拟存储器与 TLB</h3>
+
+  <div class="formula">
+    <span class="f-title">虚拟地址拆分</span>
+    <span class="f-main">
+      页内地址位数 = log₂(页面大小)<br>
+      虚页号位数 = 虚拟地址位数 − 页内地址位数
+    </span>
+  </div>
+
+  <div class="formula">
+    <span class="f-title">TLB 地址拆分（组相联）</span>
+    <span class="f-main">
+      TLB 组号位数 = log₂(TLB 组数)<br>
+      TLB 标记位数 = 虚页号位数 − TLB 组号位数
+    </span>
+    <span class="f-note">TLB 用虚页号划分，不是物理地址</span>
+  </div>
+
+  <div class="example">
+    <span class="e-title">例题</span>
+    <div class="e-q">
+      虚拟地址 30 位，页大小 4KB，TLB 采用 2 路组相联共 8 组。求虚页号、TLB 标记、TLB 组号位数。
+    </div>
+    <div class="e-a">
+      <ul class="e-step">
+        <li>页内地址 = log₂(4KB) = <strong>12 位</strong></li>
+        <li>虚页号 = 30 − 12 = <strong>18 位</strong></li>
+        <li>TLB 组号 = log₂8 = <strong>3 位</strong></li>
+        <li>TLB 标记 = 18 − 3 = <strong>15 位</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>4.4 存储器容量计算</h3>
+
+  <div class="formula">
+    <span class="f-title">存储区域容量</span>
+    <span class="f-main">容量 = 末地址 − 首地址 + 1</span>
+  </div>
+
+  <div class="example">
+    <span class="e-title">例题</span>
+    <div class="e-q">
+      主存区域 600E1000H ~ 600FFFFFH，每单元 8 位，求容量。
+    </div>
+    <div class="e-a">
+      <ul class="e-step">
+        <li>末地址 − 首地址 + 1 = 600FFFFFH − 600E1000H + 1 = 1F000H + 1 = 20000H</li>
+        <li>20000H = 2¹⁷ = <strong>128K × 8bit</strong></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- K5 指令系统计算 ---------- -->
+<section class="card exam-card" id="k5">
+  <h2><span class="num exam-num">计</span>指令系统计算<span class="freq-tag freq-mid">中频</span></h2>
+
+  <h3>5.1 扩展操作码</h3>
+
+  <p>核心思想：短操作码不能再扩展时，留出一种编码用于扩展成更长的操作码，从而支持多种地址格式的指令。</p>
+
+  <div class="example">
+    <span class="e-title">例题</span>
+    <div class="e-q">
+      指令字长 16 位，地址码 4 位。若需 15 条三地址指令、15 条二地址指令、15 条一地址指令、16 条零地址指令，设计操作码。
+    </div>
+    <div class="e-a">
+      <ul class="e-step">
+        <li><strong>三地址</strong>：操作码 4 位，可表示 16 种，取 15 种（留 1 种扩展）</li>
+        <li><strong>二地址</strong>：用 1 种三地址操作码扩展出 2⁴ = 16 种，取 15 种（留 1 种扩展）</li>
+        <li><strong>一地址</strong>：用 1 种二地址操作码扩展出 2⁴ = 16 种，取 15 种（留 1 种扩展）</li>
+        <li><strong>零地址</strong>：用 1 种一地址操作码扩展出 2⁴ = 16 种，全部使用</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>5.2 寻址范围</h3>
+
+  <div class="example">
+    <span class="e-title">例题</span>
+    <div class="e-q">
+      某机指令字长 16 位，地址码 6 位。若采用直接寻址，寻址范围？若采用间接寻址，寻址范围？
+    </div>
+    <div class="e-a">
+      <ul class="e-step">
+        <li><strong>直接寻址</strong>：2⁶ = <strong>64 个单元</strong></li>
+        <li><strong>间接寻址</strong>：地址码指向的单元中存放的是有效地址，若该单元也是 6 位，则 2⁶ = <strong>64 个单元</strong>（需注意间接寻址的位数取决于存储字长）</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- K6 流水线计算 ---------- -->
+<section class="card exam-card" id="k6">
+  <h2><span class="num exam-num">计</span>流水线计算<span class="freq-tag freq-high">高频</span></h2>
+
+  <h3>6.1 流水线周期</h3>
+
+  <div class="formula">
+    <span class="f-title">流水线时钟周期</span>
+    <span class="f-main">Δt = max(各阶段时间) + 流水线寄存器延迟</span>
+  </div>
+
+  <div class="example">
+    <span class="e-title">例题</span>
+    <div class="e-q">
+      6 个子功能时间分别为 80ns、40ns、50ns、70ns、20ns、30ns，流水线寄存器延迟 20ns。合并 E 和 F 后，求时钟周期。
+    </div>
+    <div class="e-a">
+      合并后各段为 80、40、50、70、50ns，最长 80ns，加寄存器延迟 20ns → <strong>100 ns</strong>
+    </div>
+  </div>
+
+  <h3>6.2 吞吐率、加速比、效率</h3>
+
+  <p>设 k 段流水线，每段 Δt，执行 n 条指令：</p>
+
+  <div class="formula">
+    <span class="f-title">流水线总时间</span>
+    <span class="f-main">Tk = (k + n − 1) × Δt</span>
+  </div>
+
+  <div class="formula">
+    <span class="f-title">吞吐率</span>
+    <span class="f-main">TP = n ÷ Tk</span>
+  </div>
+
+  <div class="formula">
+    <span class="f-title">加速比</span>
+    <span class="f-main">S = 非流水时间 ÷ 流水时间 = (k × n × Δt) ÷ Tk</span>
+  </div>
+
+  <div class="formula">
+    <span class="f-title">效率</span>
+    <span class="f-main">E = S ÷ k</span>
+  </div>
+
+  <div class="example">
+    <span class="e-title">例题</span>
+    <div class="e-q">
+      5 段流水线，每段 100ns，执行 20 条指令。求总时间、吞吐率、加速比、效率。
+    </div>
+    <div class="e-a">
+      <ul class="e-step">
+        <li>Tk = (5 + 20 − 1) × 100 = <strong>2400 ns</strong></li>
+        <li>TP = 20 ÷ 2400ns ≈ 8.33 × 10⁶ 条/s</li>
+        <li>S = (5 × 20 × 100) ÷ 2400 = 10000 ÷ 2400 ≈ <strong>4.17</strong></li>
+        <li>E = 4.17 ÷ 5 ≈ <strong>83.4%</strong></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- K7 总线与IO计算 ---------- -->
+<section class="card exam-card" id="k7">
+  <h2><span class="num exam-num">计</span>总线与 I/O 计算<span class="freq-tag freq-mid">中频</span></h2>
+
+  <h3>7.1 总线带宽</h3>
+
+  <div class="formula">
+    <span class="f-title">总线带宽</span>
+    <span class="f-main">总线带宽 = 总线宽度（字节） × 总线频率</span>
+    <span class="f-note">总线宽度是"位"，除以 8 才是字节</span>
+  </div>
+
+  <div class="example">
+    <span class="e-title">例题</span>
+    <div class="e-q">
+      总线宽度 32 位，频率 100MHz，求带宽。
+    </div>
+    <div class="e-a">
+      32 位 = 4 字节，带宽 = 4 × 100M = <strong>400 MB/s</strong>
+    </div>
+  </div>
+
+  <h3>7.2 DMA 传送时间</h3>
+
+  <div class="formula">
+    <span class="f-title">DMA 传送时间</span>
+    <span class="f-main">DMA 传送时间 = 数据量 ÷ 传输速率</span>
+    <span class="f-note">若按周期算：时间 = 字节数 × 每个字节占用周期数 × 总线周期</span>
+  </div>
+
+  <div class="example">
+    <span class="e-title">例题</span>
+    <div class="e-q">
+      DMA 每传送一个字节需 1 个总线周期，总线周期 200ns，传送 4KB 数据。求 DMA 占用总线时间。
+    </div>
+    <div class="e-a">
+      4KB = 4096 字节，时间 = 4096 × 200ns = <strong>819.2 μs</strong>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- K8 速查表 ---------- -->
+<section class="card exam-card" id="k8">
+  <h2><span class="num exam-num">速</span>考研计算题速查表</h2>
+
+  <p>把这张表贴在你的错题本第一页，考前反复看。</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th style="width:180px">计算类型</th><th>核心公式</th><th style="width:200px">易错点</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>CPU 执行时间</strong></td><td>指令数 × CPI ÷ 主频</td><td>主频单位 Hz，不是 MHz</td></tr>
+      <tr><td><strong>MIPS</strong></td><td>主频 ÷ (CPI × 10⁶)</td><td>分母要乘 10⁶</td></tr>
+      <tr><td><strong>平均 CPI</strong></td><td>Σ(占比 × CPI)</td><td>占比是小数不是百分数</td></tr>
+      <tr><td><strong>补码范围</strong></td><td>−2ⁿ⁻¹ ~ 2ⁿ⁻¹−1</td><td>比原码多一个负数</td></tr>
+      <tr><td><strong>IEEE 754 真值</strong></td><td>(−1)^S × 1.M × 2^(E−偏置)</td><td>尾数隐含"1."</td></tr>
+      <tr><td><strong>Cache 块内地址</strong></td><td>log₂(块大小)</td><td>块大小是字节数</td></tr>
+      <tr><td><strong>Cache 组号</strong></td><td>log₂(Cache 组数)</td><td>组数 = 总块数 ÷ 路数</td></tr>
+      <tr><td><strong>命中率</strong></td><td>H = 命中 ÷ 总访问</td><td>注意"缺失"还是"命中"</td></tr>
+      <tr><td><strong>平均访问时间</strong></td><td>H×Tc + (1−H)×Tm</td><td>注意是否先访 Cache</td></tr>
+      <tr><td><strong>TLB 组号</strong></td><td>log₂(TLB 组数)</td><td>用虚页号划分</td></tr>
+      <tr><td><strong>流水线总时间</strong></td><td>(k+n−1) × Δt</td><td>k 是段数，n 是指令数</td></tr>
+      <tr><td><strong>加速比</strong></td><td>非流水 ÷ 流水</td><td>非流水 = k × n × Δt</td></tr>
+      <tr><td><strong>总线带宽</strong></td><td>字节宽度 × 频率</td><td>位宽 ÷ 8 才是字节</td></tr>
+      <tr><td><strong>DMA 时间</strong></td><td>数据量 ÷ 传输速率</td><td>注意单位换算（KB → B）</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>备考建议</h3>
+  <ol>
+    <li><strong>浮点数 IEEE 754</strong> 是每年必考，建议把十进制 ↔ 754 的双向转换各练 10 题以上，做到条件反射。</li>
+    <li><strong>Cache 映射</strong>是计算题出现频率最高的考点，建议把三种映射方式的地址划分各画一张图，标注每一位的含义。</li>
+    <li><strong>流水线</strong>的吞吐率、加速比、效率三个指标要一起记，用同一道题反复练，注意时空图的画法。</li>
+    <li><strong>补码运算与溢出判断</strong>是选择题常客，重点掌握双符号位法。</li>
+    <li>所有计算题<strong>必须亲自动手算</strong>，看懂和算对是两回事。建议准备一个计算题错题本，按"公式 → 代入 → 结果 → 易错点"四列记录。</li>
+  </ol>
+
+  <div class="exam-tip">
+    <strong>🎯 最后的提醒：</strong>考研计组的计算题，考的不是"你会不会背公式"，而是"你能不能在题目给的一堆参数里，快速找到需要的那个，代入正确的单位"。<br>
+    所以，<strong>练题时一定要写完整过程，写清楚每一步的单位</strong>。考场上，单位错了，全盘皆输。
+  </div>
+</section>
+
+</main>
 
 <footer>
-  汇编语言从零入门 · 学习文档 &nbsp;|&nbsp; 建议配合浏览器打印为 PDF 存档
+  📘 计算机系统组成原理 · 图文教程 + 考研计算全解<br>
+  把复杂的东西讲简单，才是真的懂了 · 祝 408 上岸 🎓
 </footer>
 
 </body>
