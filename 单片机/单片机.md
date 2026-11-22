@@ -15,7 +15,7 @@ autoNavigatorVersion: 1
 
 ### 上级
 
-- [[readme|readme]]
+- [[README|README]]
 
 ### 笔记
 

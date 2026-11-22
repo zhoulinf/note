@@ -1,7 +1,7 @@
 {
   "settings": {
     "homePath": "",
-    "homeFileName": "readme",
+    "homeFileName": "README",
     "excludedFolders": [],
     "excludedFolderNames": [
       "templates"
@@ -32,7 +32,7 @@
   },
   "workspace-snapshot": {
     "version": 1,
-    "savedAt": 1795354497729,
+    "savedAt": 1795354822935,
     "layout": {
       "main": {
         "id": "fc8b96f39f95395e",
@@ -90,7 +90,7 @@
                 "state": {
                   "type": "search",
                   "state": {
-                    "query": "",
+                    "query": "[\"autoNavigatorPages\"]",
                     "matchingCase": false,
                     "explainSearch": false,
                     "collapseAll": false,
@@ -114,12 +114,12 @@
                   "title": "书签"
                 }
               }
-            ]
+            ],
+            "currentTab": 1
           }
         ],
         "direction": "horizontal",
-        "width": 300,
-        "collapsed": true
+        "width": 300
       },
       "right": {
         "id": "849188fde03edd86",
@@ -207,7 +207,7 @@
                 }
               }
             ],
-            "currentTab": 4
+            "currentTab": 3
           }
         ],
         "direction": "horizontal",
@@ -226,7 +226,7 @@
           "auto-navigator-pages:打开 Home": false
         }
       },
-      "active": "de34bb205f7e8c95"
+      "active": "bd98806459e7a6e9"
     }
   }
 }
