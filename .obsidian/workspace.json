@@ -83,7 +83,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "849188fde03edd86",
@@ -162,7 +163,7 @@
               "type": "outline",
               "state": {
                 "file": "公考/公安专业科目.md",
-                "followCursor": true,
+                "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
@@ -171,11 +172,12 @@
             }
           }
         ],
-        "currentTab": 3
+        "currentTab": 4
       }
     ],
     "direction": "horizontal",
-    "width": 286.5
+    "width": 286.5,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -189,7 +191,7 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "fef79ea1ac528c4b",
+  "active": "de34bb205f7e8c95",
   "lastOpenFiles": [
     "node/commonjs & umd & cmd.md",
     "k8s/集群搭建.md",
