@@ -1,0 +1,14 @@
+{
+  "id": "auto-navigator-pages",
+  "name": "Auto Navigator Pages",
+  "version": "0.1.3",
+  "minAppVersion": "1.4.0",
+  "description": "Automatically creates and maintains folder navigator pages and Home.md for folder-based vault organization. 中文：自动创建并维护基于文件夹组织的导航页和 Home.md.",
+  "author": "Carlos Chen",
+  "authorUrl": "https://github.com/ccccarlos0504",
+  "fundingUrl": {
+    "爱发电": "https://afdian.com/a/ccccarloschen",
+    "Ko-fi": "https://ko-fi.com/ccccarloschen"
+  },
+  "isDesktopOnly": false
+}

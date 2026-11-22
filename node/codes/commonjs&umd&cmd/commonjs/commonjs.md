@@ -1,0 +1,25 @@
+---
+autoNavigatorPages: true
+autoNavigatorVersion: 1
+---
+
+## 说明
+
+可以在这里写目录说明、项目背景、常用链接。插件不会修改本节内容。
+
+---
+
+## 自动导航
+
+> 此区域由 Auto Navigator Pages 自动维护，请不要手动修改本节内容。
+
+### 上级
+
+- [[node/codes/commonjs&umd&cmd/commonjs&umd&cmd|commonjs&umd&cmd]]
+
+### 笔记
+
+- [[index]]
+- [[math]]
+
+---
