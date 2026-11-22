@@ -23,4 +23,8 @@ autoNavigatorVersion: 1
 - [[server/server|server]]
 - [[vue/vue|vue]]
 
+### 笔记
+
+- [[电路常识]]
+
 ---
