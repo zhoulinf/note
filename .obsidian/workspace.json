@@ -83,7 +83,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "849188fde03edd86",
@@ -133,8 +134,8 @@
               "type": "tag",
               "state": {
                 "sortOrder": "frequency",
-                "useHierarchy": true,
-                "showSearch": true,
+                "useHierarchy": false,
+                "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-tags",
@@ -171,7 +172,7 @@
             }
           }
         ],
-        "currentTab": 2
+        "currentTab": 4
       }
     ],
     "direction": "horizontal",
@@ -190,7 +191,7 @@
       "auto-navigator-pages:打开 Home": false
     }
   },
-  "active": "0a162bedace5f3a1",
+  "active": "26bcb939399dc654",
   "lastOpenFiles": [
     "公考/公考.md",
     "k8s/k8s.md",
