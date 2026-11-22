@@ -32,7 +32,7 @@
   },
   "workspace-snapshot": {
     "version": 1,
-    "savedAt": 1795354181874,
+    "savedAt": 1795354497729,
     "layout": {
       "main": {
         "id": "fc8b96f39f95395e",
@@ -118,7 +118,8 @@
           }
         ],
         "direction": "horizontal",
-        "width": 300
+        "width": 300,
+        "collapsed": true
       },
       "right": {
         "id": "849188fde03edd86",
@@ -196,7 +197,7 @@
                 "state": {
                   "type": "outline",
                   "state": {
-                    "file": "k8s/集群搭建.md",
+                    "file": "公考/公安专业科目.md",
                     "followCursor": false,
                     "showSearch": false,
                     "searchQuery": ""
@@ -210,8 +211,7 @@
           }
         ],
         "direction": "horizontal",
-        "width": 286.5,
-        "collapsed": true
+        "width": 286.5
       },
       "left-ribbon": {
         "hiddenItems": {
