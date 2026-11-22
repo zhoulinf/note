@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "vue/vue.md",
+                "file": "公考/公安专业科目.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "vue"
+              "title": "公安专业科目"
             }
           }
         ]
@@ -83,7 +83,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "849188fde03edd86",
@@ -161,7 +162,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "vue/vue.md",
+                "file": "公考/公安专业科目.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -175,7 +176,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 286.5
+    "width": 286.5,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -192,6 +194,7 @@
   },
   "active": "de34bb205f7e8c95",
   "lastOpenFiles": [
+    "vue/vue.md",
     "index.md",
     "电路常识.md",
     "单片机/单片机.md",
@@ -207,7 +210,6 @@
     "react/react.md",
     "react/React review/React review.md",
     "server/server.md",
-    "vue/vue.md",
     "node/commonjs & umd & cmd.md",
     "vue/Vue组件二次封装.md",
     "vue/Vue 3 快速入门.md",
