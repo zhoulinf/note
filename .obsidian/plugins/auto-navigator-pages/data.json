@@ -32,7 +32,7 @@
   },
   "workspace-snapshot": {
     "version": 1,
-    "savedAt": 1795354822935,
+    "savedAt": 1795354832743,
     "layout": {
       "main": {
         "id": "fc8b96f39f95395e",
@@ -90,7 +90,7 @@
                 "state": {
                   "type": "search",
                   "state": {
-                    "query": "[\"autoNavigatorPages\"]",
+                    "query": "[\"cssclasses\"]",
                     "matchingCase": false,
                     "explainSearch": false,
                     "collapseAll": false,
@@ -207,7 +207,7 @@
                 }
               }
             ],
-            "currentTab": 3
+            "currentTab": 2
           }
         ],
         "direction": "horizontal",
@@ -226,7 +226,7 @@
           "auto-navigator-pages:打开 Home": false
         }
       },
-      "active": "bd98806459e7a6e9"
+      "active": "3a315bd5b195b0c0"
     }
   }
 }
