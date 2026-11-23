@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "公考/公安专业科目.md",
+                "file": "公考/公安机关.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "公安专业科目"
+              "title": "公安机关"
             }
           }
         ]
@@ -83,7 +83,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "849188fde03edd86",
@@ -161,7 +162,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "公考/公安专业科目.md",
+                "file": "公考/公安机关.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -175,7 +176,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 286.5
+    "width": 286.5,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -192,11 +194,12 @@
   },
   "active": "de34bb205f7e8c95",
   "lastOpenFiles": [
+    "公考/治安和刑事.md",
+    "公考/公安机关.md",
     "vue/vue.md",
     "index.md",
     "电路常识.md",
     "单片机/单片机.md",
-    "公考/公安专业科目.md",
     "公考/公考.md",
     "k8s/k8s.md",
     "k8s/集群搭建.md",

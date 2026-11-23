@@ -32,7 +32,7 @@
   },
   "workspace-snapshot": {
     "version": 1,
-    "savedAt": 1795435310124,
+    "savedAt": 1795436630361,
     "layout": {
       "main": {
         "id": "fc8b96f39f95395e",
@@ -48,12 +48,12 @@
                 "state": {
                   "type": "markdown",
                   "state": {
-                    "file": "公考/公安专业科目.md",
+                    "file": "公考/公安机关.md",
                     "mode": "source",
                     "source": false
                   },
                   "icon": "lucide-file",
-                  "title": "公安专业科目"
+                  "title": "公安机关"
                 }
               }
             ]
@@ -196,7 +196,7 @@
                 "state": {
                   "type": "outline",
                   "state": {
-                    "file": "公考/公安专业科目.md",
+                    "file": "公考/公安机关.md",
                     "followCursor": false,
                     "showSearch": false,
                     "searchQuery": ""
